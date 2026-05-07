@@ -13,7 +13,7 @@ const MAX_BYTES = 5 * 1024 * 1024
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
 
 interface ParsedResponse {
-  receiptUrl: string
+  receiptUrl?: string
   parsed: {
     vendor: string | null
     date: string | null
@@ -290,14 +290,16 @@ export default function Upload() {
             >
               <div className="space-y-3">
                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-mood-cream">
-                  <Image
-                    src={parsed.receiptUrl}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 100vw, 320px"
-                    className="object-cover"
-                    unoptimized
-                  />
+                  {(parsed.receiptUrl || previewUrl) && (
+                    <Image
+                      src={parsed.receiptUrl || previewUrl!}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, 320px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  )}
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold uppercase tracking-wider text-mood-muted">

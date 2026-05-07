@@ -1,6 +1,7 @@
 -- WalletHub MySQL Schema
-CREATE DATABASE IF NOT EXISTS wallethub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE wallethub;
+-- NOTE: database creation/USE removed so this file can be loaded into any
+-- target database (e.g. Aiven's `defaultdb`). Pass the database name on the
+-- mysql CLI instead: `mysql ... defaultdb < schema.sql`
 
 -- ── Users ─────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (

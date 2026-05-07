@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
 import { requireUser, isAuthUser } from '@/lib/auth'
 import {
   parseReceiptImage,
@@ -10,8 +8,11 @@ import {
 } from '@/lib/gemini'
 
 export const runtime = 'nodejs'
-// Receipt parsing makes a network call to Anthropic; it should never be cached.
+// Receipt parsing makes a network call to Gemini; it should never be cached.
 export const dynamic = 'force-dynamic'
+// Gemini vision on a receipt typically takes 3-8s; default Vercel Hobby
+// timeout is 10s which is too tight. Allow up to 30s.
+export const maxDuration = 30
 
 const MAX_BYTES = 5 * 1024 * 1024 // 5MB
 const ALLOWED: Record<string, { ext: string; media: SupportedMediaType }> = {
@@ -41,7 +42,28 @@ function checkRate(userId: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireUser(req)
+  try {
+    return await handlePost(req)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    const stack = err instanceof Error ? err.stack : undefined
+    console.error('[upload-receipt] UNHANDLED:', err)
+    return NextResponse.json(
+      { error: 'unhandled', message, stack },
+      { status: 500 },
+    )
+  }
+}
+
+async function handlePost(req: NextRequest) {
+  let auth
+  try {
+    auth = await requireUser(req)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[upload-receipt] auth/db failed:', err)
+    return NextResponse.json({ error: 'auth_failed', message }, { status: 500 })
+  }
   if (!isAuthUser(auth)) return auth
 
   if (!checkRate(auth.id)) {
@@ -69,17 +91,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'too_large' }, { status: 413 })
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-
-  // Persist the upload under /public/uploads/{userId}/{timestamp}.{ext}
-  const userDir = path.join(process.cwd(), 'public', 'uploads', auth.id)
-  await fs.mkdir(userDir, { recursive: true })
-  const filename = `${Date.now()}.${allowed.ext}`
-  const absPath = path.join(userDir, filename)
-  await fs.writeFile(absPath, buffer)
-  const receiptUrl = `/uploads/${auth.id}/${filename}`
+  let buffer: Buffer
+  try {
+    buffer = Buffer.from(await file.arrayBuffer())
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[upload-receipt] file read failed:', err)
+    return NextResponse.json({ error: 'file_read_failed', message }, { status: 500 })
+  }
 
   // Hand the image to Gemini vision.
+  // Note: we don't echo the image back to the client. A 5 MB image becomes
+  // ~6.7 MB as base64, which exceeds Vercel's ~4.5 MB serverless response
+  // limit and causes a 500. The client already has a blob URL for preview.
   let parsed
   let raw: unknown = null
   try {
@@ -91,19 +115,17 @@ export async function POST(req: NextRequest) {
     raw = result.raw
   } catch (err) {
     if (err instanceof MissingApiKeyError) {
-      return NextResponse.json({ error: 'missing_api_key', receiptUrl }, { status: 503 })
+      return NextResponse.json({ error: 'missing_api_key' }, { status: 503 })
     }
     const message = err instanceof Error ? err.message : String(err)
-    // Surface the real failure in the terminal so it can be diagnosed.
     console.error('[upload-receipt] Gemini call failed:', err)
     return NextResponse.json(
-      { error: 'parse_failed', message, receiptUrl },
+      { error: 'parse_failed', message },
       { status: 502 },
     )
   }
 
   return NextResponse.json({
-    receiptUrl,
     parsed: {
       vendor: parsed.vendor,
       date: parsed.date,
