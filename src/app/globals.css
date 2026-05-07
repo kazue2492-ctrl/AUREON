@@ -1,0 +1,441 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ──────────────────────────────────────────────────────────
+     DEFAULT (engiin) — minimal navy / slate
+     Pure white background, professional & neutral
+  ────────────────────────────────────────────────────────── */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 210 40% 98%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 33% 17%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 25% 27%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 215 25% 60%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 33% 17%;
+    --radius: 0.625rem;
+
+    /* Brand vars (sidebar gradient, button) — derived from primary/accent */
+    --brand-btn: 217 33% 17%;
+    --brand-btn-hover: 222 47% 11%;
+    --brand-ring: 215 25% 60%;
+    --brand-bar: 215 25% 60%;
+    --brand-active: 215 25% 60%;
+    --brand-gradient-start: 222 47% 11%;
+    --brand-gradient-end: 217 33% 17%;
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 215 25% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 215 25% 60%;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     FAMILY (gerbul) — warm cream + terracotta + honey
+     Дулаахан, найрсаг, гэрэлтэй
+  ────────────────────────────────────────────────────────── */
+  [data-theme="gerbul"] {
+    --background: 33 50% 96%;
+    --foreground: 20 35% 15%;
+    --card: 30 40% 99%;
+    --card-foreground: 20 35% 15%;
+    --popover: 30 40% 99%;
+    --popover-foreground: 20 35% 15%;
+    --primary: 14 75% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 24 65% 88%;
+    --secondary-foreground: 20 35% 15%;
+    --muted: 30 35% 92%;
+    --muted-foreground: 20 20% 40%;
+    --accent: 38 92% 56%;
+    --accent-foreground: 20 35% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 24 30% 86%;
+    --input: 24 30% 86%;
+    --ring: 14 75% 48%;
+
+    --brand-btn: 14 75% 48%;
+    --brand-btn-hover: 14 80% 38%;
+    --brand-ring: 38 92% 56%;
+    --brand-bar: 38 92% 56%;
+    --brand-active: 24 95% 55%;
+    --brand-gradient-start: 18 70% 12%;
+    --brand-gradient-end: 14 60% 25%;
+
+    --sidebar-background: 18 65% 12%;
+    --sidebar-foreground: 30 40% 98%;
+    --sidebar-primary: 38 92% 56%;
+    --sidebar-primary-foreground: 18 65% 12%;
+    --sidebar-accent: 14 50% 18%;
+    --sidebar-accent-foreground: 30 40% 98%;
+    --sidebar-border: 14 50% 18%;
+    --sidebar-ring: 38 92% 56%;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     COUPLES (khos) — soft blush + dusty rose + mauve
+     Дотно, зөөлөн, романтик
+  ────────────────────────────────────────────────────────── */
+  [data-theme="khos"] {
+    --background: 350 50% 98%;
+    --foreground: 340 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 340 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 25% 15%;
+    --primary: 340 60% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 340 40% 92%;
+    --secondary-foreground: 340 25% 15%;
+    --muted: 340 30% 95%;
+    --muted-foreground: 340 15% 45%;
+    --accent: 280 35% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 340 25% 88%;
+    --input: 340 25% 88%;
+    --ring: 340 60% 48%;
+
+    --brand-btn: 340 60% 48%;
+    --brand-btn-hover: 340 65% 38%;
+    --brand-ring: 280 35% 55%;
+    --brand-bar: 280 35% 55%;
+    --brand-active: 340 70% 60%;
+    --brand-gradient-start: 340 40% 14%;
+    --brand-gradient-end: 280 35% 25%;
+
+    --sidebar-background: 340 40% 12%;
+    --sidebar-foreground: 340 30% 96%;
+    --sidebar-primary: 340 70% 65%;
+    --sidebar-primary-foreground: 340 40% 12%;
+    --sidebar-accent: 340 35% 18%;
+    --sidebar-accent-foreground: 340 30% 96%;
+    --sidebar-border: 340 35% 18%;
+    --sidebar-ring: 340 70% 65%;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     STUDENTS (oyutan) — dark navy + electric blue + neon teal
+     Эрч хүчтэй, орчин үеийн, идэвхтэй
+  ────────────────────────────────────────────────────────── */
+  [data-theme="oyutan"] {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+    --card: 222 40% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 40% 12%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 222 35% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 30% 16%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 168 85% 50%;
+    --accent-foreground: 222 47% 8%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 30% 22%;
+    --input: 222 30% 22%;
+    --ring: 217 91% 60%;
+
+    --brand-btn: 217 91% 60%;
+    --brand-btn-hover: 217 91% 50%;
+    --brand-ring: 168 85% 50%;
+    --brand-bar: 168 85% 50%;
+    --brand-active: 168 85% 55%;
+    --brand-gradient-start: 222 47% 6%;
+    --brand-gradient-end: 222 40% 14%;
+
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 168 85% 55%;
+    --sidebar-primary-foreground: 222 47% 8%;
+    --sidebar-accent: 222 40% 14%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 35% 18%;
+    --sidebar-ring: 168 85% 55%;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     Dark-mode overrides per theme (when .dark class present)
+  ────────────────────────────────────────────────────────── */
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 40% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 40% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 222 30% 18%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 30% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 215 25% 60%;
+    --accent-foreground: 0 0% 100%;
+    --border: 222 30% 20%;
+    --input: 222 30% 20%;
+    --ring: 215 25% 60%;
+  }
+
+  .dark[data-theme="gerbul"] {
+    --background: 18 50% 7%;
+    --foreground: 30 40% 96%;
+    --card: 18 45% 11%;
+    --card-foreground: 30 40% 96%;
+    --popover: 18 45% 11%;
+    --popover-foreground: 30 40% 96%;
+    --primary: 24 90% 58%;
+    --primary-foreground: 18 50% 7%;
+    --secondary: 18 35% 18%;
+    --secondary-foreground: 30 40% 96%;
+    --muted: 18 30% 15%;
+    --muted-foreground: 30 25% 65%;
+    --accent: 38 92% 60%;
+    --accent-foreground: 18 50% 7%;
+    --border: 18 30% 20%;
+    --input: 18 30% 20%;
+    --ring: 38 92% 60%;
+  }
+
+  .dark[data-theme="khos"] {
+    --background: 340 35% 7%;
+    --foreground: 340 30% 96%;
+    --card: 340 35% 11%;
+    --card-foreground: 340 30% 96%;
+    --popover: 340 35% 11%;
+    --popover-foreground: 340 30% 96%;
+    --primary: 340 70% 65%;
+    --primary-foreground: 340 35% 10%;
+    --secondary: 340 25% 18%;
+    --secondary-foreground: 340 30% 96%;
+    --muted: 340 25% 15%;
+    --muted-foreground: 340 15% 65%;
+    --accent: 280 50% 70%;
+    --accent-foreground: 340 35% 10%;
+    --border: 340 25% 20%;
+    --input: 340 25% 20%;
+    --ring: 340 70% 65%;
+  }
+
+  .dark[data-theme="oyutan"] {
+    /* oyutan is already dark by default — keep parity */
+    --background: 222 47% 5%;
+    --card: 222 40% 9%;
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     Dark-mode hardcoded-color overrides.
+     Many components use literal `bg-white` / gray borders that
+     do not auto-swap with the mood tokens. In dark mode, force
+     them onto the dark card surface so cards stop glowing white.
+     Higher specificity (.dark .X) beats Tailwind's single-class
+     utility, so no !important needed.
+  ────────────────────────────────────────────────────────── */
+  .dark .bg-white {
+    background-color: hsl(var(--mood-card));
+  }
+  .dark .border-gray-100,
+  .dark .border-gray-200 {
+    border-color: hsl(var(--mood-primary) / 0.15);
+  }
+  .dark .text-gray-900,
+  .dark .text-gray-800 {
+    color: hsl(var(--mood-ink));
+  }
+  .dark .text-gray-700,
+  .dark .text-gray-600,
+  .dark .text-gray-500 {
+    color: hsl(var(--mood-muted));
+  }
+  .dark .bg-gray-50,
+  .dark .bg-gray-100 {
+    background-color: hsl(var(--mood-cream));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+  }
+  .font-space {
+    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  }
+}
+
+@layer base {
+  /* Per-account mood palette defaults (engiin = cream + AUREON purple).
+     Overridden at runtime by AccountThemeProvider. Stored as raw HSL
+     triplets so Tailwind's <alpha-value> modifier works:
+       hsl(var(--mood-primary) / 0.15) */
+  :root {
+    --mood-cream:      40 80% 96%;
+    --mood-card:       42 80% 98%;
+    --mood-primary:    263 78% 50%;
+    --mood-deep:       261 67% 35%;
+    --mood-accent:     28 53% 36%;
+    --mood-ink:        253 43% 14%;
+    --mood-muted:      253 12% 45%;
+    --mood-shadow-rgb: 76, 29, 149;
+    --mood-glow-rgb:   109, 40, 217;
+  }
+}
+
+@layer utilities {
+  .bg-aureon-dots {
+    background-image: radial-gradient(rgba(109, 40, 217, 0.10) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .bg-aureon-cream {
+    background-color: #FFF8EE;
+  }
+  .bg-mood-dots {
+    background-image: radial-gradient(rgba(var(--mood-glow-rgb), 0.10) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+@layer components {
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  .glass-card {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: 16px;
+  }
+
+  .glass-card-dark {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.3);
+    border-radius: 16px;
+  }
+
+  .stat-card-gradient {
+    background: linear-gradient(135deg, hsl(var(--brand-gradient-start)) 0%, hsl(var(--brand-gradient-end)) 100%);
+  }
+
+  .theme-btn-primary {
+    background-color: hsl(var(--brand-btn));
+    color: hsl(var(--primary-foreground));
+    transition: background-color 0.2s;
+  }
+  .theme-btn-primary:hover:not(:disabled) {
+    background-color: hsl(var(--brand-btn-hover));
+  }
+
+  .theme-sidebar-bg {
+    background-color: hsl(var(--sidebar-background));
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 transition-all duration-200 cursor-pointer;
+  }
+  .sidebar-item:hover {
+    @apply bg-white/10 text-white pl-5;
+  }
+  .sidebar-item.active {
+    @apply bg-white/10 text-white border-l-4;
+    border-color: hsl(var(--brand-active));
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-col items-center gap-1 py-2 px-3 text-muted-foreground transition-all duration-200;
+  }
+  .bottom-nav-item.active {
+    color: hsl(var(--brand-btn));
+  }
+
+  .page-transition {
+    animation: fadeSlideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  .fade-in-up {
+    animation: fadeSlideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleUp {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .modal-enter {
+    animation: scaleUp 0.3s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+  }
+
+  .progress-animate {
+    animation: progressGrow 1s ease-out forwards;
+  }
+
+  @keyframes progressGrow {
+    from {
+      width: 0%;
+    }
+  }
+}
