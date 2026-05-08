@@ -15,21 +15,23 @@ function poolFromDatabaseUrl(databaseUrl: string) {
   const parsed = new URL(databaseUrl)
   const sslMode = parsed.searchParams.get('ssl-mode') ?? parsed.searchParams.get('sslmode')
   const sslParam = parsed.searchParams.get('ssl')
+  const allowInsecure = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'false'
+  const rejectUnauthorized = !allowInsecure
 
   let ssl: mysql.ConnectionOptions['ssl'] | undefined
 
   if (sslParam) {
     if (sslParam === 'true') {
-      ssl = { rejectUnauthorized: true }
+      ssl = { rejectUnauthorized }
     } else if (sslParam !== 'false') {
       try {
         ssl = JSON.parse(sslParam)
       } catch {
-        ssl = { rejectUnauthorized: true }
+        ssl = { rejectUnauthorized }
       }
     }
   } else if (sslMode && ['REQUIRED', 'VERIFY_CA', 'VERIFY_IDENTITY'].includes(sslMode.toUpperCase())) {
-    ssl = { rejectUnauthorized: true }
+    ssl = { rejectUnauthorized }
   }
 
   return mysql.createPool({
@@ -55,7 +57,9 @@ function poolFromLegacyEnv() {
     waitForConnections: true,
     connectionLimit: 10,
     charset: 'utf8mb4',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined,
+    ssl: process.env.DB_SSL === 'true'
+      ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
+      : undefined,
   })
 }
 

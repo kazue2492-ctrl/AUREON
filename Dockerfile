@@ -27,6 +27,10 @@ RUN npm ci --include=dev
 # Copy application code
 COPY . .
 
+# Normalize line endings on the entrypoint so the Linux shebang works
+# even if the host (Windows) introduced CRLF.
+RUN sed -i 's/\r$//' docker-entrypoint.js && chmod +x docker-entrypoint.js
+
 # Build application
 RUN npx next build --experimental-build-mode compile
 
