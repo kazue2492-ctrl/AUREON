@@ -13,24 +13,19 @@ function required(name: string, fallback?: string): string {
 
 function poolFromDatabaseUrl(databaseUrl: string) {
   const parsed = new URL(databaseUrl)
-  const sslMode = parsed.searchParams.get('ssl-mode') ?? parsed.searchParams.get('sslmode')
   const sslParam = parsed.searchParams.get('ssl')
-  const allowInsecure = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'false'
+  const allowInsecure = process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'true'
   const rejectUnauthorized = !allowInsecure
 
-  let ssl: mysql.ConnectionOptions['ssl'] | undefined
+  let ssl: mysql.ConnectionOptions['ssl'] = { rejectUnauthorized: false }
 
-  if (sslParam) {
-    if (sslParam === 'true') {
+  if (sslParam && sslParam !== 'true' && sslParam !== 'false') {
+    try {
+      ssl = JSON.parse(sslParam)
+    } catch {
       ssl = { rejectUnauthorized }
-    } else if (sslParam !== 'false') {
-      try {
-        ssl = JSON.parse(sslParam)
-      } catch {
-        ssl = { rejectUnauthorized }
-      }
     }
-  } else if (sslMode && ['REQUIRED', 'VERIFY_CA', 'VERIFY_IDENTITY'].includes(sslMode.toUpperCase())) {
+  } else if (sslParam === 'true') {
     ssl = { rejectUnauthorized }
   }
 
@@ -57,9 +52,9 @@ function poolFromLegacyEnv() {
     waitForConnections: true,
     connectionLimit: 10,
     charset: 'utf8mb4',
-    ssl: process.env.DB_SSL === 'true'
-      ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
-      : undefined,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   })
 }
 
