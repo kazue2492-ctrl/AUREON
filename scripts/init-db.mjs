@@ -28,19 +28,13 @@ loadDotEnvLocal()
 
 function buildConfigFromUrl(url) {
   const u = new URL(url)
-  const sslMode = u.searchParams.get('ssl-mode') ?? u.searchParams.get('sslmode')
-  const allowInsecure = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'false'
-  const ssl =
-    sslMode && ['REQUIRED', 'VERIFY_CA', 'VERIFY_IDENTITY'].includes(sslMode.toUpperCase())
-      ? { rejectUnauthorized: !allowInsecure }
-      : undefined
   return {
     host: u.hostname,
     port: u.port ? Number(u.port) : 3306,
     user: decodeURIComponent(u.username),
     password: decodeURIComponent(u.password),
     database: decodeURIComponent(u.pathname.replace(/^\//, '')),
-    ssl,
+    ssl: { rejectUnauthorized: false },
     multipleStatements: true,
     charset: 'utf8mb4',
   }
@@ -53,7 +47,7 @@ function buildConfigFromLegacy() {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined,
+    ssl: { rejectUnauthorized: false },
     multipleStatements: true,
     charset: 'utf8mb4',
   }
