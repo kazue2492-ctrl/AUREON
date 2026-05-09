@@ -220,7 +220,7 @@ export default function Upload() {
                   </div>
                 </label>
 
-                <div className="absolute bottom-4 left-2">
+                <div className="pointer-events-none absolute bottom-4 left-2">
                   <div className="relative h-[26rem] w-[22rem] overflow-hidden rounded-2xl bg-transparent shadow-none sm:h-[32rem] sm:w-[28rem]">
                     <Image
                       src="/23.png"

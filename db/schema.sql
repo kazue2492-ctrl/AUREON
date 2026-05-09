@@ -73,10 +73,15 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- ── Families ──────────────────────────────────────────────
+-- `kind` distinguishes a 4-member family from a 2-member couple. Drives
+-- which family_role values are allowed and what maxMembers is reported
+-- by the API. The idempotent block at the bottom backfills this column
+-- on databases that pre-date it.
 CREATE TABLE IF NOT EXISTS families (
   id         VARCHAR(30)  PRIMARY KEY,
   owner_id   VARCHAR(30)  NOT NULL,
   name       VARCHAR(255) NOT NULL,
+  kind       ENUM('family','couple') NOT NULL DEFAULT 'family',
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_family_owner (owner_id),
   CONSTRAINT fk_family_owner FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
@@ -136,6 +141,24 @@ SET @ddl := IF(@col_exists = 0,
      ADD UNIQUE KEY uk_fm_family_role (family_id, family_role)",
   "ALTER TABLE family_members
      MODIFY COLUMN family_role ENUM('father','mother','older_sister','older_brother','younger_sibling','husband','wife','partner') DEFAULT NULL"
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add `kind` to existing families tables that pre-date it. Defaults
+-- existing rows to 'family' so legacy households retain 4-member limits.
+SET @col_exists := (
+  SELECT COUNT(*) FROM information_schema.columns
+   WHERE table_schema = DATABASE()
+     AND table_name = 'families'
+     AND column_name = 'kind'
+);
+SET @ddl := IF(@col_exists = 0,
+  "ALTER TABLE families
+     ADD COLUMN kind ENUM('family','couple') NOT NULL DEFAULT 'family' AFTER name",
+  "ALTER TABLE families
+     MODIFY COLUMN kind ENUM('family','couple') NOT NULL DEFAULT 'family'"
 );
 PREPARE stmt FROM @ddl;
 EXECUTE stmt;
