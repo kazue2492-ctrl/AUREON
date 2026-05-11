@@ -9,10 +9,25 @@ export async function GET(req: NextRequest) {
   if (!isAuthUser(auth)) return auth
 
   try {
+    // Return the caller's own goals plus the goals of anyone in the same
+    // family. Falls back to just the caller's own goals when they are not
+    // in a family. ownerId/ownerName let the UI label whose goal it is.
     const [rows] = await db.query(
-      'SELECT * FROM goals WHERE user_id = ?',
-      [auth.id]
+      `SELECT g.*, u.name AS owner_name
+         FROM goals g
+         JOIN users u ON u.id = g.user_id
+        WHERE g.user_id = ?
+           OR g.user_id IN (
+             SELECT fm.user_id
+               FROM family_members fm
+              WHERE fm.family_id = (
+                SELECT family_id FROM family_members WHERE user_id = ? LIMIT 1
+              )
+           )
+        ORDER BY g.created_at DESC, g.id DESC`,
+      [auth.id, auth.id]
     ) as [Record<string, unknown>[], unknown]
+
     return NextResponse.json(rows.map((r) => ({
       id: r.id, name: r.name,
       targetAmount: toNum(r.target_amount),
@@ -20,6 +35,8 @@ export async function GET(req: NextRequest) {
       deadline: r.deadline instanceof Date ? r.deadline.toISOString().split('T')[0] : r.deadline,
       image: r.image ?? undefined,
       createdAt: r.created_at instanceof Date ? r.created_at.toISOString().split('T')[0] : r.created_at,
+      ownerId: r.user_id,
+      ownerName: r.owner_name,
     })))
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 })

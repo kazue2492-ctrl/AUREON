@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS goals (
   target_amount  DECIMAL(18,2) NOT NULL,
   current_amount DECIMAL(18,2) NOT NULL DEFAULT 0,
   deadline       DATE          NOT NULL,
-  image          VARCHAR(500)  DEFAULT NULL,
+  image          MEDIUMTEXT    DEFAULT NULL,
   created_at     DATE          NOT NULL,
   INDEX idx_goal_user (user_id),
   CONSTRAINT fk_goal_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -159,6 +159,24 @@ SET @ddl := IF(@col_exists = 0,
      ADD COLUMN kind ENUM('family','couple') NOT NULL DEFAULT 'family' AFTER name",
   "ALTER TABLE families
      MODIFY COLUMN kind ENUM('family','couple') NOT NULL DEFAULT 'family'"
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Widen goals.image so uploaded base64 dataURLs fit. VARCHAR(500) silently
+-- rejected most photo uploads (a 1 KB JPEG is already ~1.4 KB as base64),
+-- which is why "create goal" appeared to succeed in the UI but the row
+-- never reached the database.
+SET @col_type := (
+  SELECT data_type FROM information_schema.columns
+   WHERE table_schema = DATABASE()
+     AND table_name = 'goals'
+     AND column_name = 'image'
+);
+SET @ddl := IF(@col_type IS NULL OR @col_type = 'mediumtext',
+  "SELECT 'goals.image already mediumtext or table missing'",
+  "ALTER TABLE goals MODIFY COLUMN image MEDIUMTEXT DEFAULT NULL"
 );
 PREPARE stmt FROM @ddl;
 EXECUTE stmt;

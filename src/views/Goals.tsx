@@ -22,6 +22,7 @@ import {
   deleteGoal,
   addTransaction,
 } from '@/lib/data'
+import { getUser } from '@/lib/clientAuth'
 import type { Goal } from '@/types'
 import { useLanguage } from '@/components/LanguageProvider'
 import { MASCOT_SRC } from '@/views/landing/mascot'
@@ -49,6 +50,7 @@ export default function Goals() {
   const [depositAmount, setDepositAmount] = useState('')
   const [editingDailyId, setEditingDailyId] = useState<string | null>(null)
   const [dailyDraft, setDailyDraft] = useState('')
+  const currentUserId = getUser()?.id ?? ''
 
   useEffect(() => { refreshData() }, [])
 
@@ -75,19 +77,23 @@ export default function Goals() {
     e.preventDefault()
     if (!name || !targetAmount || !deadline) return
 
+    // datetime-local gives "YYYY-MM-DDTHH:MM" but the DB column is DATE.
+    // Strict MySQL rejects the time-bearing form and silently drops the row.
+    const deadlineDate = deadline.slice(0, 10)
+
     if (editingId) {
       updateGoal(editingId, {
         name,
         targetAmount: Number(targetAmount),
         currentAmount: Number(currentAmount) || 0,
-        deadline,
+        deadline: deadlineDate,
         image: image || undefined,
       })
     } else {
       addGoal({
         name,
         targetAmount: Number(targetAmount),
-        deadline,
+        deadline: deadlineDate,
         image: image || undefined,
       })
     }
@@ -453,6 +459,7 @@ export default function Goals() {
             const percent = Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
             const timeLeft = getTimeLeft(goal.deadline, now)
             const isCompleted = goal.currentAmount >= goal.targetAmount
+            const isMine = !goal.ownerId || goal.ownerId === currentUserId
 
             return (
               <motion.div
@@ -491,24 +498,31 @@ export default function Goals() {
                           <Calendar className="h-3.5 w-3.5" />
                           {timeLeft.label}
                         </div>
+                        {!isMine && goal.ownerName && (
+                          <div className="mt-1 inline-flex items-center rounded-full bg-mood-primary/10 px-2 py-0.5 text-[10px] font-semibold text-mood-primary">
+                            {goal.ownerName}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleEdit(goal)}
-                        aria-label="Edit"
-                        className="rounded-lg p-2 text-mood-muted transition-colors hover:bg-mood-primary/8 hover:text-mood-primary"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(goal.id)}
-                        aria-label="Delete"
-                        className="rounded-lg p-2 text-mood-muted transition-colors hover:bg-rose-50 hover:text-rose-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+                    {isMine && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEdit(goal)}
+                          aria-label="Edit"
+                          className="rounded-lg p-2 text-mood-muted transition-colors hover:bg-mood-primary/8 hover:text-mood-primary"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(goal.id)}
+                          aria-label="Delete"
+                          className="rounded-lg p-2 text-mood-muted transition-colors hover:bg-rose-50 hover:text-rose-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-3 flex items-baseline justify-between">
@@ -544,7 +558,7 @@ export default function Goals() {
                     )}
                   </div>
 
-                  {!isCompleted && (
+                  {!isCompleted && isMine && (
                     <div className="mt-4 rounded-2xl border border-mood-primary/10 bg-mood-cream/40 p-3">
                       <AnimatePresence mode="wait" initial={false}>
                         {editingDailyId === goal.id ? (
@@ -554,9 +568,9 @@ export default function Goals() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
                             transition={{ duration: 0.15 }}
-                            className="flex items-center gap-2"
+                            className="flex flex-wrap items-center gap-2"
                           >
-                            <div className="flex flex-1 items-center gap-2 rounded-xl border border-mood-primary/20 bg-white px-3 py-2">
+                            <div className="flex w-full flex-1 basis-full items-center gap-2 rounded-xl border border-mood-primary/20 bg-white px-3 py-2 sm:basis-auto">
                               <Coins className="h-4 w-4 shrink-0 text-mood-primary" />
                               <input
                                 type="number"
@@ -572,30 +586,32 @@ export default function Goals() {
                               />
                               <span className="text-xs font-semibold text-mood-muted">₮</span>
                             </div>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => saveDaily(goal)}
-                              aria-label="Save"
-                              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-mood-primary text-white shadow-md shadow-mood-primary/25 transition-colors hover:bg-mood-deep"
-                            >
-                              <Check className="h-4 w-4" />
-                            </motion.button>
-                            <button
-                              onClick={() => resetDaily(goal)}
-                              aria-label={t('goals.dailyReset')}
-                              title={t('goals.dailyReset')}
-                              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-mood-primary/15 bg-white text-mood-muted transition-colors hover:border-mood-primary/40 hover:text-mood-ink"
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={cancelDailyEditor}
-                              aria-label="Cancel"
-                              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-mood-primary/15 bg-white text-mood-muted transition-colors hover:border-mood-primary/40 hover:text-mood-ink"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
+                            <div className="ml-auto flex gap-2">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => saveDaily(goal)}
+                                aria-label="Save"
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-mood-primary text-white shadow-md shadow-mood-primary/25 transition-colors hover:bg-mood-deep sm:h-10 sm:w-10"
+                              >
+                                <Check className="h-4 w-4" />
+                              </motion.button>
+                              <button
+                                onClick={() => resetDaily(goal)}
+                                aria-label={t('goals.dailyReset')}
+                                title={t('goals.dailyReset')}
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-mood-primary/15 bg-white text-mood-muted transition-colors hover:border-mood-primary/40 hover:text-mood-ink sm:h-10 sm:w-10"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={cancelDailyEditor}
+                                aria-label="Cancel"
+                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-mood-primary/15 bg-white text-mood-muted transition-colors hover:border-mood-primary/40 hover:text-mood-ink sm:h-10 sm:w-10"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
                           </motion.div>
                         ) : (
                           <motion.div
@@ -644,7 +660,7 @@ export default function Goals() {
                     </div>
                   )}
 
-                  {!isCompleted && (
+                  {!isCompleted && isMine && (
                     <div className="mt-3">
                       <AnimatePresence mode="wait">
                         {depositingId === goal.id ? (
@@ -654,7 +670,7 @@ export default function Goals() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
                             transition={{ duration: 0.15 }}
-                            className="flex items-center gap-2"
+                            className="flex flex-wrap items-center gap-2"
                           >
                             <input
                               type="number"
@@ -666,7 +682,7 @@ export default function Goals() {
                                 if (e.key === 'Escape') cancelDeposit()
                               }}
                               placeholder={t('goals.depositPlaceholder')}
-                              className="flex-1 rounded-xl border border-mood-primary/20 bg-white px-3 py-2 text-sm font-semibold text-mood-ink placeholder:text-mood-muted/60 transition-all focus:border-mood-primary focus:outline-none focus:ring-4 focus:ring-mood-primary/15"
+                              className="w-full flex-1 basis-full rounded-xl border border-mood-primary/20 bg-white px-3 py-2 text-sm font-semibold text-mood-ink placeholder:text-mood-muted/60 transition-all focus:border-mood-primary focus:outline-none focus:ring-4 focus:ring-mood-primary/15 sm:basis-auto"
                             />
                             <motion.button
                               whileHover={{ scale: 1.05 }}

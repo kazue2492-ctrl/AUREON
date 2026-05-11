@@ -26,6 +26,10 @@ export interface Goal {
   image?: string;
   dailyAmount?: number;
   createdAt: string;
+  // Set by GET /api/goals — identifies which family member owns this goal.
+  // Used to render an owner label on shared family goals.
+  ownerId?: string;
+  ownerName?: string;
 }
 
 export interface UserProfile {
