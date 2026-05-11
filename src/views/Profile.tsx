@@ -306,39 +306,31 @@ export default function Profile() {
                 <Sparkles className="h-3.5 w-3.5 text-mood-primary" />
                 {t('profile.lifestyle')}
               </label>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {(Object.keys(profileModes) as ProfileMode[]).map((mode) => {
-                  const meta = profileModes[mode]
-                  const Icon = meta.icon
-                  const active = relationshipStatus === mode
-                  return (
-                    <motion.button
-                      key={mode}
-                      type="button"
-                      whileHover={{ y: -2 }}
-                      onClick={() => setRelationshipStatus(mode)}
-                      className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
-                        active
-                          ? 'border-mood-primary bg-mood-primary/5 shadow-md shadow-mood-primary/15'
-                          : 'border-mood-primary/10 bg-white hover:border-mood-primary/30'
-                      }`}
-                    >
-                      <span
-                        aria-hidden
-                        className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
-                        style={{ background: meta.accent, opacity: active ? 1 : 0.35 }}
-                      />
-                      <Icon className={`mb-3 h-4 w-4 ${active ? 'text-mood-primary' : 'text-mood-muted'}`} />
-                      <p className="text-sm font-semibold text-mood-ink">
-                        {t(`mode.${mode}.label` as const)}
-                      </p>
-                      <p className="mt-1 text-xs text-mood-muted">
-                        {t(`mode.${mode}.subtitle` as const)}
-                      </p>
-                    </motion.button>
-                  )
-                })}
-              </div>
+              {(() => {
+                const meta = profileModes[relationshipStatus]
+                const Icon = meta.icon
+                return (
+                  <div
+                    aria-readonly="true"
+                    title={t('profile.lockedHint')}
+                    className="relative rounded-2xl border-2 border-mood-primary bg-mood-primary/5 p-4 shadow-md shadow-mood-primary/15"
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
+                      style={{ background: meta.accent }}
+                    />
+                    <Icon className="mb-3 h-4 w-4 text-mood-primary" />
+                    <p className="text-sm font-semibold text-mood-ink">
+                      {t(`mode.${relationshipStatus}.label` as const)}
+                    </p>
+                    <p className="mt-1 text-xs text-mood-muted">
+                      {t(`mode.${relationshipStatus}.subtitle` as const)}
+                    </p>
+                  </div>
+                )
+              })()}
+              <p className="mt-2 text-xs text-mood-muted">{t('profile.lockedHint')}</p>
             </div>
 
             <div>

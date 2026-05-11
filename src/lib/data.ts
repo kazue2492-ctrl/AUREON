@@ -91,6 +91,7 @@ export function addTransaction(transaction: Omit<Transaction, 'id'>): Transactio
   setStorage(STORAGE_KEYS.transactions, next);
   _txCache = next;
   apiFetch('/api/transactions', { method: 'POST', body: JSON.stringify(newTransaction) }).catch(console.error);
+  emitDataChange();
   return newTransaction;
 }
 
@@ -103,6 +104,7 @@ export function updateTransaction(id: string, updates: Partial<Transaction>): Tr
   setStorage(STORAGE_KEYS.transactions, updated);
   _txCache = updated;
   apiFetch(`/api/transactions/${id}`, { method: 'PUT', body: JSON.stringify(updated[index]) }).catch(console.error);
+  emitDataChange();
   return updated[index];
 }
 
@@ -112,6 +114,7 @@ export function deleteTransaction(id: string): boolean {
   setStorage(STORAGE_KEYS.transactions, filtered);
   _txCache = filtered;
   apiFetch(`/api/transactions/${id}`, { method: 'DELETE' }).catch(console.error);
+  emitDataChange();
   return filtered.length < transactions.length;
 }
 
@@ -125,6 +128,7 @@ export function addBudget(budget: Omit<Budget, 'id' | 'spent'>): Budget {
   const newBudget = { ...budget, id: generateId(), spent: 0 };
   setStorage(STORAGE_KEYS.budgets, [...budgets, newBudget]);
   apiFetch('/api/budgets', { method: 'POST', body: JSON.stringify(newBudget) }).catch(console.error);
+  emitDataChange();
   return newBudget;
 }
 
@@ -135,6 +139,7 @@ export function updateBudget(id: string, updates: Partial<Budget>): Budget | nul
   budgets[index] = { ...budgets[index], ...updates };
   setStorage(STORAGE_KEYS.budgets, budgets);
   apiFetch(`/api/budgets/${id}`, { method: 'PUT', body: JSON.stringify(budgets[index]) }).catch(console.error);
+  emitDataChange();
   return budgets[index];
 }
 
@@ -143,6 +148,7 @@ export function deleteBudget(id: string): boolean {
   const filtered = budgets.filter(b => b.id !== id);
   setStorage(STORAGE_KEYS.budgets, filtered);
   apiFetch(`/api/budgets/${id}`, { method: 'DELETE' }).catch(console.error);
+  emitDataChange();
   return filtered.length < budgets.length;
 }
 

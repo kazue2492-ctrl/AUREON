@@ -147,33 +147,33 @@ export default function Dashboard() {
     .slice(0, 5)
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="p-3 sm:p-4 lg:p-8">
       <motion.div
         initial="hidden"
         animate="show"
         variants={stagger}
-        className="space-y-6"
+        className="space-y-5 sm:space-y-6"
       >
         {/* Header */}
-        <motion.header variants={fadeUp} className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <motion.header variants={fadeUp} className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <motion.img
               src={DASHBOARD_HEADER_MASCOT_SRC}
               alt="Moko"
-              className="h-16 w-16 flex-shrink-0 object-contain drop-shadow-[0_8px_14px_rgba(var(--mood-shadow-rgb),0.18)] sm:h-18 sm:w-18 lg:h-20 lg:w-20"
+              className="h-12 w-12 flex-shrink-0 object-contain drop-shadow-[0_8px_14px_rgba(var(--mood-shadow-rgb),0.18)] sm:h-16 sm:w-16 lg:h-20 lg:w-20"
             />
             <div className="min-w-0">
-              <h1 className="font-display text-2xl font-extrabold tracking-tight text-mood-ink lg:text-3xl">
+              <h1 className="truncate font-display text-xl font-extrabold tracking-tight text-mood-ink sm:text-2xl lg:text-3xl">
                 {t('dashboard.title')}
               </h1>
-              <p className="mt-0.5 text-sm text-mood-muted">{t('dashboard.subtitle')}</p>
+              <p className="mt-0.5 truncate text-xs text-mood-muted sm:text-sm">{t('dashboard.subtitle')}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5">
             <button
               aria-label="Notifications"
-              className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-mood-primary/15 bg-white text-mood-ink/80 transition-colors hover:border-mood-primary/40 hover:text-mood-primary"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-mood-primary/15 bg-white text-mood-ink/80 transition-colors hover:border-mood-primary/40 hover:text-mood-primary sm:h-11 sm:w-11"
             >
               <Bell className="h-4.5 w-4.5" />
               {notifications.length > 0 && (
@@ -184,7 +184,8 @@ export default function Dashboard() {
             </button>
             <Link
               href="/upload"
-              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-colors hover:bg-emerald-600"
+              aria-label={t('upload.title')}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-3 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-colors hover:bg-emerald-600 sm:px-4"
             >
               <ScanLine className="h-4 w-4" />
               <span className="hidden sm:inline">{t('upload.title')}</span>
@@ -193,7 +194,8 @@ export default function Dashboard() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-mood-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-mood-primary/25 transition-colors hover:bg-mood-deep"
+              aria-label={t('dashboard.addTransaction')}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-mood-primary px-3 py-2.5 text-sm font-semibold text-white shadow-lg shadow-mood-primary/25 transition-colors hover:bg-mood-deep sm:px-4"
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">{t('dashboard.addTransaction')}</span>
@@ -252,14 +254,14 @@ export default function Dashboard() {
         {/* Stats grid */}
         <motion.div
           variants={stagger}
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+          className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
         >
           {stats.map((stat) => (
             <motion.div
               key={stat.title}
               variants={fadeUp}
               whileHover={{ y: -3 }}
-              className={`relative overflow-hidden rounded-3xl p-5 transition-shadow ${
+              className={`relative overflow-hidden rounded-2xl p-4 transition-shadow sm:rounded-3xl sm:p-5 ${
                 stat.kind === 'hero'
                   ? 'bg-gradient-to-br from-mood-primary via-mood-deep to-mood-primary text-white shadow-xl shadow-mood-primary/30'
                   : 'border border-mood-primary/10 bg-mood-card shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)] hover:shadow-[0_18px_40px_-18px_rgba(var(--mood-shadow-rgb),0.30)]'
@@ -280,7 +282,7 @@ export default function Dashboard() {
                   src={TOTAL_BALANCE_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-39px] h-28 w-28 object-contain sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               {stat.kind === 'income' && (
@@ -288,7 +290,7 @@ export default function Dashboard() {
                   src={INCOME_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-39px] h-28 w-28 object-contain sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               {stat.kind === 'expense' && (
@@ -296,7 +298,7 @@ export default function Dashboard() {
                   src={EXPENSE_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-39px] h-28 w-28 object-contain sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               {stat.kind === 'savings' && (
@@ -304,7 +306,7 @@ export default function Dashboard() {
                   src={SAVINGS_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-39px] h-28 w-28 object-contain sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               <div className="relative flex items-center justify-between">
@@ -335,7 +337,7 @@ export default function Dashboard() {
                 {stat.title}
               </p>
               <p
-                className={`relative mt-1 font-display text-2xl font-extrabold tracking-tight lg:text-3xl ${
+                className={`relative mt-1 font-display text-lg font-extrabold tracking-tight tabular-nums sm:text-2xl lg:text-3xl ${
                   stat.kind === 'hero' ? 'text-white' : 'text-mood-ink'
                 }`}
               >
@@ -349,7 +351,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <motion.div
             variants={fadeUp}
-            className="rounded-3xl border border-mood-primary/10 bg-mood-card p-6 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)]"
+            className="rounded-2xl border border-mood-primary/10 bg-mood-card p-4 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)] sm:rounded-3xl sm:p-6"
           >
             <h3 className="font-display text-lg font-bold text-mood-ink">
               {t('dashboard.weeklyExpenses')}
@@ -364,16 +366,19 @@ export default function Dashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(var(--mood-glow-rgb),0.10)" />
-                  <XAxis dataKey="name" tick={{ fill: '#6B6480', fontSize: 12 }} />
-                  <YAxis tick={{ fill: '#6B6480', fontSize: 12 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                  <XAxis dataKey="name" tick={{ fill: 'hsl(var(--mood-muted))', fontSize: 12 }} />
+                  <YAxis tick={{ fill: 'hsl(var(--mood-muted))', fontSize: 12 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                   <Tooltip
                     formatter={(value: number) => [`${value.toLocaleString()} ₮`, t('common.expense')]}
                     contentStyle={{
                       borderRadius: 14,
                       border: '1px solid rgba(var(--mood-glow-rgb),0.15)',
-                      background: '#FFFDF7',
+                      background: 'hsl(var(--mood-card))',
+                      color: 'hsl(var(--mood-ink))',
                       boxShadow: '0 12px 24px -12px rgba(var(--mood-shadow-rgb),0.20)',
                     }}
+                    labelStyle={{ color: 'hsl(var(--mood-ink))' }}
+                    itemStyle={{ color: 'hsl(var(--mood-ink))' }}
                   />
                   <Bar dataKey="value" fill="url(#aureonBar)" radius={[10, 10, 0, 0]} />
                 </BarChart>
@@ -383,7 +388,7 @@ export default function Dashboard() {
 
           <motion.div
             variants={fadeUp}
-            className="rounded-3xl border border-mood-primary/10 bg-mood-card p-6 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)]"
+            className="rounded-2xl border border-mood-primary/10 bg-mood-card p-4 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)] sm:rounded-3xl sm:p-6"
           >
             <h3 className="font-display text-lg font-bold text-mood-ink">
               {t('dashboard.expenseByCategory')}
@@ -411,8 +416,11 @@ export default function Dashboard() {
                     contentStyle={{
                       borderRadius: 14,
                       border: '1px solid rgba(var(--mood-glow-rgb),0.15)',
-                      background: '#FFFDF7',
+                      background: 'hsl(var(--mood-card))',
+                      color: 'hsl(var(--mood-ink))',
                     }}
+                    labelStyle={{ color: 'hsl(var(--mood-ink))' }}
+                    itemStyle={{ color: 'hsl(var(--mood-ink))' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -436,8 +444,8 @@ export default function Dashboard() {
           variants={fadeUp}
           className="overflow-hidden rounded-3xl border border-mood-primary/10 bg-mood-card shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)]"
         >
-          <div className="flex items-center justify-between p-6 pb-3">
-            <h3 className="font-display text-lg font-bold text-mood-ink">
+          <div className="flex items-center justify-between p-4 pb-3 sm:p-6">
+            <h3 className="font-display text-base font-bold text-mood-ink sm:text-lg">
               {t('dashboard.recentTransactions')}
             </h3>
             <Link
@@ -457,11 +465,11 @@ export default function Dashboard() {
             ) : recentTransactions.map((tx) => (
               <div
                 key={tx.id}
-                className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-mood-cream/50"
+                className="flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-mood-cream/50 sm:px-6 sm:py-4"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+                    className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl ${
                       tx.type === 'income'
                         ? 'bg-emerald-100 text-emerald-600'
                         : 'bg-rose-100 text-rose-600'
@@ -469,13 +477,13 @@ export default function Dashboard() {
                   >
                     {tx.type === 'income' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-mood-ink">{tx.title}</p>
-                    <p className="text-xs text-mood-muted">{tc(tx.category)} · {tx.date}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-mood-ink">{tx.title}</p>
+                    <p className="truncate text-xs text-mood-muted">{tc(tx.category)} · {tx.date}</p>
                   </div>
                 </div>
                 <span
-                  className={`font-display text-sm font-bold tabular-nums ${
+                  className={`flex-shrink-0 font-display text-sm font-bold tabular-nums ${
                     tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
                   }`}
                 >

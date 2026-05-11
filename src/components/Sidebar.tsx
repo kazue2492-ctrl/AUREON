@@ -17,7 +17,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react'
-import ThemeSwitcher from './ThemeSwitcher'
 import { apiFetch, clearAuth, getToken } from '@/lib/clientAuth'
 import { useLanguage } from './LanguageProvider'
 import type { TKey } from '@/lib/i18n'
@@ -215,7 +214,6 @@ export default function Sidebar() {
       </nav>
 
       <div className="space-y-3 border-t border-mood-primary/10 px-3 py-4">
-        <ThemeSwitcher variant="sidebar" expanded={expanded} />
         <button
           type="button"
           onClick={handleLogout}
