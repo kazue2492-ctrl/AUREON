@@ -32,6 +32,16 @@ const fadeUp: Variants = {
   show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
 }
 
+// Build a "YYYY-MM-DDTHH:mm" string `offset` (months) ahead of now, preserving
+// the current local time. Used by the deadline quick-pick chips.
+function presetToLocalDateTime(monthsAhead: number, weeksAhead = 0): string {
+  const d = new Date()
+  if (monthsAhead > 0) d.setMonth(d.getMonth() + monthsAhead)
+  if (weeksAhead > 0)  d.setDate(d.getDate() + weeksAhead * 7)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 export default function Goals() {
   const { t } = useLanguage()
   const [goals, setGoals] = useState<Goal[]>([])
@@ -337,13 +347,52 @@ export default function Goals() {
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-mood-muted">
                       {t('goals.deadlineLabel')}
                     </label>
-                    <input
-                      type="datetime-local"
-                      value={deadline}
-                      onChange={(e) => setDeadline(e.target.value)}
-                      className="w-full rounded-xl border border-mood-primary/15 bg-white px-4 py-3 text-sm text-mood-ink transition-all focus:border-mood-primary focus:outline-none focus:ring-4 focus:ring-mood-primary/15"
-                      required
-                    />
+                    <div className="rounded-2xl border-2 border-mood-primary/15 bg-gradient-to-br from-mood-primary/5 to-mood-cream/40 p-3 transition-all focus-within:border-mood-primary focus-within:ring-4 focus-within:ring-mood-primary/15">
+                      <div className="flex items-center gap-3 rounded-xl bg-white/70 px-3 py-2 shadow-sm shadow-mood-primary/5">
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-mood-primary/12 text-mood-primary">
+                          <Calendar className="h-4 w-4" />
+                        </div>
+                        <input
+                          type="datetime-local"
+                          value={deadline}
+                          onChange={(e) => setDeadline(e.target.value)}
+                          className="w-full bg-transparent text-sm font-semibold tabular-nums text-mood-ink focus:outline-none"
+                          required
+                        />
+                      </div>
+
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {([
+                          { key: 'goals.quick1w' as const, weeks: 1,  months: 0  },
+                          { key: 'goals.quick1m' as const, weeks: 0,  months: 1  },
+                          { key: 'goals.quick3m' as const, weeks: 0,  months: 3  },
+                          { key: 'goals.quick6m' as const, weeks: 0,  months: 6  },
+                          { key: 'goals.quick1y' as const, weeks: 0,  months: 12 },
+                        ]).map((qp) => (
+                          <button
+                            key={qp.key}
+                            type="button"
+                            onClick={() => setDeadline(presetToLocalDateTime(qp.months, qp.weeks))}
+                            className="rounded-full border border-mood-primary/15 bg-white px-2.5 py-1 text-[11px] font-semibold text-mood-ink/75 transition-colors hover:border-mood-primary/45 hover:bg-mood-primary/5 hover:text-mood-primary"
+                          >
+                            +{t(qp.key)}
+                          </button>
+                        ))}
+                      </div>
+
+                      {deadline && (() => {
+                        const ms = new Date(deadline).getTime() - Date.now()
+                        if (!Number.isFinite(ms)) return null
+                        const days = Math.max(0, Math.ceil(ms / 86_400_000))
+                        return (
+                          <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-mood-muted">
+                            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-mood-primary" />
+                            <span className="tabular-nums font-semibold text-mood-ink">{days}</span>
+                            {t('goals.daysFromNow')}
+                          </p>
+                        )
+                      })()}
+                    </div>
                   </div>
                   <div className="sm:col-span-2">
                     <div className="mb-1.5 flex items-center justify-between gap-3">

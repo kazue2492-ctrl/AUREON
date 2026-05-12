@@ -144,6 +144,13 @@ export const translations = {
   'goals.dailyEdit':       { mn: 'Дүн өөрчлөх',              en: 'Change amount' },
   'goals.dailyReset':      { mn: 'Анхны утга сэргээх',       en: 'Reset to suggested' },
   'goals.dailySaveNow':    { mn: 'Өнөөдөр хэмнэх',           en: 'Save today' },
+  'goals.quick1w':         { mn: '7 хоног',                  en: '1 week' },
+  'goals.quick1m':         { mn: '1 сар',                    en: '1 month' },
+  'goals.quick3m':         { mn: '3 сар',                    en: '3 months' },
+  'goals.quick6m':         { mn: '6 сар',                    en: '6 months' },
+  'goals.quick1y':         { mn: '1 жил',                    en: '1 year' },
+  'goals.daysFromNow':     { mn: 'хоногийн дотор',           en: 'days from now' },
+  'goals.deadlinePicked':  { mn: 'Сонгосон хугацаа',         en: 'Selected deadline' },
 
   // ── Reports ──
   'reports.title':           { mn: 'Санхүүгийн тайлан',         en: 'Financial reports' },
