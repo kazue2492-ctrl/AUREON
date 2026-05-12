@@ -11,10 +11,11 @@ import {
   Calendar,
   Zap,
   GraduationCap,
+  RotateCcw,
 } from 'lucide-react'
 import { apiFetch, getUser, setUser, type AuthUser } from '@/lib/clientAuth'
 import { useLanguage } from '@/components/LanguageProvider'
-import PaymentModal, { type PaymentPlan } from '@/components/PaymentModal'
+import PaymentModal, { type DurationOption, type PaymentPlan } from '@/components/PaymentModal'
 
 type PlanId = 'free' | 'pro' | 'premium'
 
@@ -86,11 +87,50 @@ function planForAccountType(accountType: string | null, subscriptionActive: bool
   return 'free'
 }
 
+// Per-plan duration prices. MUST mirror PRICES_MNT in
+// app/api/subscription/checkout/route.ts; the server is authoritative.
+const PLAN_DURATION_PRICES: Record<'khos' | 'gerbul', Array<{ months: 1 | 3 | 12; mnt: number }>> = {
+  khos:   [{ months: 1, mnt: 9900  }, { months: 3, mnt: 28500 }, { months: 12, mnt: 118800 }],
+  gerbul: [{ months: 1, mnt: 34900 }, { months: 3, mnt: 99000 }, { months: 12, mnt: 418800 }],
+}
+
+function formatMnt(n: number): string {
+  return '₮' + n.toLocaleString('en-US')
+}
+
+function buildDurationOptions(
+  paymentPlan: PaymentPlan,
+  t: (key: 'subscription.duration1m' | 'subscription.duration3m' | 'subscription.duration12m') => string,
+): DurationOption[] {
+  const tiers = PLAN_DURATION_PRICES[paymentPlan]
+  const monthlyMnt = tiers[0].mnt
+  return tiers.map(({ months, mnt }) => {
+    const label = months === 1
+      ? t('subscription.duration1m')
+      : months === 3
+      ? t('subscription.duration3m')
+      : t('subscription.duration12m')
+    const undiscounted = monthlyMnt * months
+    const discountPct = undiscounted > mnt
+      ? Math.round(((undiscounted - mnt) / undiscounted) * 100)
+      : 0
+    return {
+      months,
+      label,
+      priceLabel: formatMnt(mnt),
+      badge: discountPct > 0 ? `-${discountPct}%` : undefined,
+    }
+  })
+}
+
 export default function Subscription() {
   const { t, lang } = useLanguage()
   const [authUser, setAuthUserState] = useState<AuthUser | null>(null)
   const [accountType, setAccountType] = useState<string | null>(null)
   const [membership, setMembership] = useState<FamilyMembership | null>(null)
+  // `pendingPlan` covers two flows: upgrading from free (purchase) and
+  // renewing/extending the user's current paid plan. Both open PaymentModal
+  // with the per-duration price grid.
   const [pendingPlan, setPendingPlan] = useState<PlanDef | null>(null)
   const [canceled, setCanceled] = useState(false)
 
@@ -134,19 +174,10 @@ export default function Subscription() {
       .catch(() => { /* no family is a valid state */ })
   }, [])
 
+  // Open the payment modal for a brand-new purchase. Renewals reuse
+  // setPendingPlan directly via the Extend button on the current plan card.
   function handlePick(plan: PlanDef) {
-    if (plan.id === currentPlanId) return
-    if (plan.paymentPlan === null) {
-      // Downgrade to free — call cancel endpoint.
-      void handleCancel()
-      return
-    }
-    if (ownSubscriptionActive) {
-      // Already subscribed: switching between paid plans doesn't recharge.
-      // The user changes their account type from the Profile page; here we
-      // just acknowledge with a no-op.
-      return
-    }
+    if (plan.paymentPlan === null) return
     setPendingPlan(plan)
   }
 
@@ -254,21 +285,11 @@ export default function Subscription() {
             </p>
           )}
 
-          {ownSubscriptionActive && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
-            >
-              {canceled ? (
-                <>
-                  <CheckCircle2 className="h-3 w-3" />
-                  {t('subscription.canceled')}
-                </>
-              ) : (
-                t('subscription.cancel')
-              )}
-            </button>
+          {canceled && (
+            <p className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700">
+              <CheckCircle2 className="h-3 w-3" />
+              {t('subscription.canceled')}
+            </p>
           )}
         </motion.div>
 
@@ -329,29 +350,39 @@ export default function Subscription() {
                     ))}
                   </ul>
 
-                  {!isCurrent && (
+                  {/* Action area:
+                      - Current paid plan → Extend (Renew) + Cancel
+                      - Non-current paid plan when no active sub → Upgrade
+                      - Free plan (non-current) when subscribed → no button (managed via Cancel on current card)
+                      - Current free plan → no button */}
+                  {isCurrent && plan.paymentPlan !== null && ownSubscriptionActive && (
+                    <div className="mt-auto flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPendingPlan(plan)}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-mood-primary px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-mood-primary/25 transition-colors hover:bg-mood-deep"
+                      >
+                        <RotateCcw className="h-3 w-3" />
+                        {t('subscription.extend')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-100"
+                      >
+                        {t('subscription.cancel')}
+                      </button>
+                    </div>
+                  )}
+
+                  {!isCurrent && plan.paymentPlan !== null && !ownSubscriptionActive && (
                     <button
                       type="button"
                       onClick={() => handlePick(plan)}
-                      disabled={ownSubscriptionActive && plan.paymentPlan !== null}
-                      className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${
-                        plan.paymentPlan === null
-                          ? 'border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100'
-                          : ownSubscriptionActive
-                          ? 'cursor-not-allowed border border-mood-primary/10 bg-mood-cream text-mood-muted'
-                          : 'bg-mood-primary text-white shadow-lg shadow-mood-primary/25 hover:bg-mood-deep'
-                      }`}
+                      className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-mood-primary px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-mood-primary/25 transition-colors hover:bg-mood-deep"
                     >
-                      {plan.paymentPlan === null ? (
-                        <>
-                          {t('subscription.cancel')}
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="h-3 w-3" />
-                          {ownSubscriptionActive ? t('subscription.switchPlan') : t('subscription.upgrade')}
-                        </>
-                      )}
+                      <CreditCard className="h-3 w-3" />
+                      {t('subscription.upgrade')}
                     </button>
                   )}
                 </div>
@@ -372,6 +403,7 @@ export default function Subscription() {
           plan={pendingPlan.paymentPlan}
           planName={t(pendingPlan.nameKey)}
           priceLabel={`${pendingPlan.paidValue}${t('subscription.month')}`}
+          durations={buildDurationOptions(pendingPlan.paymentPlan, (k) => t(k))}
           onClose={() => setPendingPlan(null)}
           onSuccess={handlePaymentSuccess}
         />

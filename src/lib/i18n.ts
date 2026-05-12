@@ -206,6 +206,13 @@ export const translations = {
   'subscription.invitedBy':     { mn: 'Урилгаар нэгдсэн',                     en: 'Joined by invitation' },
   'subscription.invitedHint':   { mn: 'Та урилгаар нэгдсэн тул багцыг зөвхөн эзэмшигч удирдана.', en: 'You joined by invitation; only the owner can manage the plan.' },
   'subscription.inheritedFrom': { mn: 'Эзэмшигч',                             en: 'Owner' },
+  'subscription.duration':      { mn: 'Хугацаа',                              en: 'Duration' },
+  'subscription.duration1m':    { mn: '1 сар',                                en: '1 month' },
+  'subscription.duration3m':    { mn: '3 сар',                                en: '3 months' },
+  'subscription.duration12m':   { mn: '1 жил',                                en: '1 year' },
+  'subscription.discountBadge': { mn: 'хөнгөлөлттэй',                         en: 'discounted' },
+  'subscription.extend':        { mn: 'Сунгах',                               en: 'Renew' },
+  'subscription.extendHint':    { mn: 'Багцаа сунгана: одоогийн дуусах огнооноос үргэлжилнэ.', en: 'Renewal extends from your current end date.' },
 
   // ── Lifestyle modes ──
   'mode.individual.label':    { mn: 'Энгийн',                en: 'Individual' },

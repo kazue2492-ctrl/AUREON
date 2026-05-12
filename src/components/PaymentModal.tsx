@@ -6,12 +6,24 @@ import { apiFetch } from '@/lib/clientAuth'
 import { useLanguage } from './LanguageProvider'
 
 export type PaymentPlan = 'khos' | 'gerbul'
+export type PaymentDuration = 1 | 3 | 12
+
+export interface DurationOption {
+  months: PaymentDuration
+  label: string       // e.g. "1 сар" / "3 months"
+  priceLabel: string  // e.g. "₮28,500"
+  badge?: string      // e.g. "4% хөнгөлөлт"
+}
 
 interface PaymentModalProps {
   isOpen: boolean
   plan: PaymentPlan
   planName: string
-  priceLabel: string  // e.g. "₮9,900/сар"
+  priceLabel: string  // shown only when durations is not provided (e.g. "₮9,900/сар")
+  // When provided, renders a duration picker above the form and the chosen
+  // duration is sent to the checkout API. The first option is selected by
+  // default. When omitted, the modal falls back to a single 1-month charge.
+  durations?: DurationOption[]
   onClose: () => void
   onSuccess: () => void
 }
@@ -72,6 +84,7 @@ export default function PaymentModal({
   plan,
   planName,
   priceLabel,
+  durations,
   onClose,
   onSuccess,
 }: PaymentModalProps) {
@@ -83,6 +96,12 @@ export default function PaymentModal({
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [selectedMonths, setSelectedMonths] = useState<PaymentDuration>(
+    durations?.[0]?.months ?? 1
+  )
+
+  const selectedDuration = durations?.find((d) => d.months === selectedMonths) ?? null
+  const effectivePriceLabel = selectedDuration?.priceLabel ?? priceLabel
 
   const T = {
     title:        lang === 'mn' ? 'Төлбөрийн мэдээлэл'                   : 'Payment details',
@@ -92,7 +111,7 @@ export default function PaymentModal({
     number:       lang === 'mn' ? 'Картны дугаар'                         : 'Card number',
     expiry:       lang === 'mn' ? 'Дуусах огноо'                          : 'Expiry',
     cvc:          'CVC',
-    pay:          lang === 'mn' ? `${priceLabel} төлөх`                   : `Pay ${priceLabel}`,
+    pay:          lang === 'mn' ? `${effectivePriceLabel} төлөх`           : `Pay ${effectivePriceLabel}`,
     paying:       lang === 'mn' ? 'Төлбөр хийгдэж байна...'              : 'Processing payment...',
     paid:         lang === 'mn' ? 'Төлбөр амжилттай'                      : 'Payment successful',
     cancel:       lang === 'mn' ? 'Цуцлах'                                : 'Cancel',
@@ -114,8 +133,9 @@ export default function PaymentModal({
     if (!isOpen) {
       setHolder(''); setNumber(''); setExpiry(''); setCvc('')
       setSubmitting(false); setSuccess(false); setError('')
+      setSelectedMonths(durations?.[0]?.months ?? 1)
     }
-  }, [isOpen])
+  }, [isOpen, durations])
 
   function validate(): string | null {
     if (!holder.trim())   return T.needHolder
@@ -146,6 +166,7 @@ export default function PaymentModal({
         method: 'POST',
         body: JSON.stringify({
           plan,
+          durationMonths: selectedMonths,
           last4: number.replace(/\D/g, '').slice(-4),
           brand,
           holder: holder.trim(),
@@ -203,7 +224,7 @@ export default function PaymentModal({
                   {planName}
                 </span>
                 <span>•</span>
-                <span className="font-semibold">{priceLabel}</span>
+                <span className="font-semibold">{effectivePriceLabel}</span>
               </div>
             </div>
 
@@ -276,6 +297,40 @@ export default function PaymentModal({
                   <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
                   <span>{T.paid}</span>
                 </motion.div>
+              )}
+
+              {durations && durations.length > 1 && (
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-aureon-muted">
+                    {lang === 'mn' ? 'Хугацаа' : 'Duration'}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {durations.map((d) => {
+                      const active = d.months === selectedMonths
+                      return (
+                        <button
+                          key={d.months}
+                          type="button"
+                          onClick={() => setSelectedMonths(d.months)}
+                          disabled={submitting || success}
+                          className={`relative rounded-xl border px-2 py-2 text-center transition-all ${
+                            active
+                              ? 'border-aureon-purple bg-aureon-purple/10 text-aureon-ink shadow-sm'
+                              : 'border-aureon-purple/15 bg-white text-aureon-ink/70 hover:border-aureon-purple/40'
+                          }`}
+                        >
+                          <p className="text-[11px] font-semibold leading-tight">{d.label}</p>
+                          <p className="mt-0.5 text-[11px] tabular-nums">{d.priceLabel}</p>
+                          {d.badge && (
+                            <span className="mt-1 inline-block rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">
+                              {d.badge}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               )}
 
               <div>
