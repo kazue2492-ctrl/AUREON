@@ -14,6 +14,7 @@ import {
   Settings,
   Users,
   Heart,
+  Crown,
 } from 'lucide-react'
 import { apiFetch, clearAuth, getToken } from '@/lib/clientAuth'
 import { useLanguage } from './LanguageProvider'
@@ -31,9 +32,10 @@ const baseMenuItems: Array<{ path: string; labelKey: TKey; icon: typeof LayoutDa
   { path: '/reports',      labelKey: 'nav.reports',      icon: BarChart3 },
 ]
 
-const familyItem  = { path: '/family',  labelKey: 'nav.family'  as TKey, icon: Users }
-const coupleItem  = { path: '/couple',  labelKey: 'nav.couple'  as TKey, icon: Heart }
-const profileItem = { path: '/profile', labelKey: 'nav.profile' as TKey, icon: Settings }
+const familyItem       = { path: '/family',       labelKey: 'nav.family'       as TKey, icon: Users }
+const coupleItem       = { path: '/couple',       labelKey: 'nav.couple'       as TKey, icon: Heart }
+const subscriptionItem = { path: '/subscription', labelKey: 'nav.subscription' as TKey, icon: Crown }
+const profileItem      = { path: '/profile',      labelKey: 'nav.profile'      as TKey, icon: Settings }
 
 function readAccountType(): string | null {
   if (typeof window === 'undefined') return null
@@ -123,8 +125,8 @@ export default function Sidebar() {
   const showFamilyOrCouple = accountType === 'gerbul' || isCouple || inFamily
   const partnerItem = isCouple ? coupleItem : familyItem
   const menuItems = showFamilyOrCouple
-    ? [...baseMenuItems, partnerItem, profileItem]
-    : [...baseMenuItems, profileItem]
+    ? [...baseMenuItems, partnerItem, subscriptionItem, profileItem]
+    : [...baseMenuItems, subscriptionItem, profileItem]
 
   function handleLogout() {
     clearAuth()

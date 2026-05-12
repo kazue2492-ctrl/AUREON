@@ -25,10 +25,11 @@ import {
   getNotifications,
   markNotificationRead,
 } from '@/lib/data'
-import { clearAuth } from '@/lib/clientAuth'
+import { apiFetch, clearAuth, getUser, setUser } from '@/lib/clientAuth'
 import type { UserProfile, Notification } from '@/types'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/components/LanguageProvider'
+import PaymentModal, { type PaymentPlan } from '@/components/PaymentModal'
 
 const profileModes = {
   individual: { icon: Sparkles,        accent: '#6D28D9' },
@@ -38,6 +39,15 @@ const profileModes = {
 } as const
 
 type ProfileMode = keyof typeof profileModes
+
+const STATUS_TO_ACCOUNT: Record<ProfileMode, 'engiin' | 'khos' | 'oyutan' | 'gerbul'> = {
+  individual: 'engiin',
+  couple:     'khos',
+  student:    'oyutan',
+  family:     'gerbul',
+}
+
+const PAID_MODES: ReadonlySet<ProfileMode> = new Set(['couple', 'family'])
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
@@ -59,6 +69,8 @@ export default function Profile() {
   const [saved, setSaved] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [avatarUrl, setAvatarUrl] = useState<string>('')
+  const [subscriptionActive, setSubscriptionActive] = useState(false)
+  const [pendingPaidMode, setPendingPaidMode] = useState<ProfileMode | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -81,6 +93,13 @@ export default function Profile() {
     setAge(localStorage.getItem('walletHubAge') || '')
     setGender((localStorage.getItem('walletHubGender') as 'male' | 'female' | '') || '')
     setNotifications(getNotifications())
+    setSubscriptionActive(getUser()?.subscriptionStatus === 'active')
+
+    // Re-verify subscription from the server so an expired/renewed plan
+    // is reflected even when the cached AuthUser is stale.
+    apiFetch<{ subscriptionStatus?: string | null }>('/api/auth/me')
+      .then((me) => setSubscriptionActive(me.subscriptionStatus === 'active'))
+      .catch(() => { /* keep cached value */ })
   }, [])
 
   useEffect(() => {
@@ -103,20 +122,62 @@ export default function Profile() {
     }
   }, [])
 
+  function persistRelationship(mode: ProfileMode) {
+    updateProfile({ relationshipStatus: mode })
+    const accountType = STATUS_TO_ACCOUNT[mode]
+    localStorage.setItem('walletHubAccountType', accountType)
+    setTheme(accountType)
+    window.dispatchEvent(new Event('profileUpdated'))
+  }
+
   function handleSave() {
     updateProfile({ currency, relationshipStatus, darkMode })
-    const statusToAccount: Record<ProfileMode, 'engiin' | 'khos' | 'oyutan' | 'gerbul'> = {
-      individual: 'engiin',
-      couple:     'khos',
-      student:    'oyutan',
-      family:     'gerbul',
-    }
-    const newAccountType = statusToAccount[relationshipStatus]
+    const newAccountType = STATUS_TO_ACCOUNT[relationshipStatus]
     localStorage.setItem('walletHubAccountType', newAccountType)
     setTheme(newAccountType)
     window.dispatchEvent(new Event('profileUpdated'))
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
+  }
+
+  function handleLifestylePick(mode: ProfileMode) {
+    if (mode === relationshipStatus) return
+
+    // Free modes (individual, student) switch immediately.
+    if (!PAID_MODES.has(mode)) {
+      setRelationshipStatus(mode)
+      persistRelationship(mode)
+      return
+    }
+
+    // Paid modes need an active subscription. If the user already has one,
+    // they can freely switch between paid plans (no re-charge).
+    if (subscriptionActive) {
+      setRelationshipStatus(mode)
+      persistRelationship(mode)
+      return
+    }
+
+    // Otherwise, open the payment modal for the chosen paid plan.
+    setPendingPaidMode(mode)
+  }
+
+  async function handlePaymentSuccess() {
+    if (!pendingPaidMode) return
+    const planName = pendingPaidMode === 'couple' ? 'pro' : 'premium'
+    window.localStorage.setItem('walletHubSubscription', planName)
+    setRelationshipStatus(pendingPaidMode)
+    persistRelationship(pendingPaidMode)
+    setSubscriptionActive(true)
+
+    // Refresh the cached AuthUser so other pages (Sidebar/Subscription) see
+    // the new subscriptionStatus without a full reload.
+    try {
+      const me = await apiFetch<import('@/lib/clientAuth').AuthUser>('/api/auth/me')
+      setUser(me)
+    } catch { /* cache update is best-effort */ }
+
+    setPendingPaidMode(null)
   }
 
   function handleThemeToggle() {
@@ -152,6 +213,12 @@ export default function Profile() {
   }
 
   if (!profile) return null
+
+  const paidPlanMeta = pendingPaidMode === 'couple'
+    ? { plan: 'khos' as PaymentPlan, name: 'Pro · ' + t('mode.couple.label'),   price: '₮9,900'  }
+    : pendingPaidMode === 'family'
+    ? { plan: 'gerbul' as PaymentPlan, name: 'Premium · ' + t('mode.family.label'), price: '₮34,900' }
+    : null
 
   return (
     <div className="p-4 lg:p-8">
@@ -193,10 +260,10 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-mood-card bg-mood-primary text-white shadow-md shadow-mood-primary/30 transition hover:bg-mood-deep"
+                className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-mood-card bg-mood-primary text-white shadow-md shadow-mood-primary/30 transition hover:bg-mood-deep"
                 title={t('profile.changeAvatar')}
               >
-                <Camera className="h-3.5 w-3.5" />
+                <Camera className="h-3 w-3" />
               </button>
               <input
                 ref={fileInputRef}
@@ -306,31 +373,46 @@ export default function Profile() {
                 <Sparkles className="h-3.5 w-3.5 text-mood-primary" />
                 {t('profile.lifestyle')}
               </label>
-              {(() => {
-                const meta = profileModes[relationshipStatus]
-                const Icon = meta.icon
-                return (
-                  <div
-                    aria-readonly="true"
-                    title={t('profile.lockedHint')}
-                    className="relative rounded-2xl border-2 border-mood-primary bg-mood-primary/5 p-4 shadow-md shadow-mood-primary/15"
-                  >
-                    <span
-                      aria-hidden
-                      className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
-                      style={{ background: meta.accent }}
-                    />
-                    <Icon className="mb-3 h-4 w-4 text-mood-primary" />
-                    <p className="text-sm font-semibold text-mood-ink">
-                      {t(`mode.${relationshipStatus}.label` as const)}
-                    </p>
-                    <p className="mt-1 text-xs text-mood-muted">
-                      {t(`mode.${relationshipStatus}.subtitle` as const)}
-                    </p>
-                  </div>
-                )
-              })()}
-              <p className="mt-2 text-xs text-mood-muted">{t('profile.lockedHint')}</p>
+              <div className="grid grid-cols-2 gap-2.5">
+                {(Object.keys(profileModes) as ProfileMode[]).map((mode) => {
+                  const meta = profileModes[mode]
+                  const Icon = meta.icon
+                  const selected = relationshipStatus === mode
+                  const locked = PAID_MODES.has(mode) && !subscriptionActive
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => handleLifestylePick(mode)}
+                      className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
+                        selected
+                          ? 'border-mood-primary bg-mood-primary/5 shadow-md shadow-mood-primary/15'
+                          : 'border-mood-primary/10 bg-white hover:border-mood-primary/40'
+                      }`}
+                    >
+                      <span
+                        aria-hidden
+                        className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
+                        style={{ background: meta.accent, opacity: selected ? 1 : 0.4 }}
+                      />
+                      <Icon className={`mb-3 h-4 w-4 ${selected ? 'text-mood-primary' : 'text-mood-muted'}`} />
+                      <p className={`text-sm font-semibold ${selected ? 'text-mood-ink' : 'text-mood-ink/80'}`}>
+                        {t(`mode.${mode}.label` as const)}
+                      </p>
+                      <p className="mt-1 text-xs text-mood-muted">
+                        {t(`mode.${mode}.subtitle` as const)}
+                      </p>
+                      {locked && (
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-mood-primary/10 px-2 py-0.5 text-[10px] font-semibold text-mood-primary">
+                          <Sparkles className="h-3 w-3" />
+                          {t('profile.upgradeRequired')}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="mt-2 text-xs text-mood-muted">{t('profile.lifestyleHint')}</p>
             </div>
 
             <div>
@@ -349,7 +431,7 @@ export default function Profile() {
               </select>
             </div>
 
-            <div className="flex items-center justify-between rounded-2xl border border-mood-primary/10 bg-white px-4 py-3">
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-mood-primary/10 bg-white px-4 py-3">
               <div className="flex items-center gap-2 text-sm font-medium text-mood-ink">
                 <Languages className="h-4 w-4 text-mood-primary" />
                 {t('profile.language')}
@@ -360,7 +442,7 @@ export default function Profile() {
                     key={l}
                     type="button"
                     onClick={() => setLang(l)}
-                    className={`rounded-full px-4 py-1.5 transition-colors ${
+                    className={`rounded-full px-2.5 py-1 transition-colors ${
                       lang === l
                         ? 'bg-mood-primary text-white shadow-sm'
                         : 'text-mood-muted hover:text-mood-ink'
@@ -372,7 +454,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-2xl border border-mood-primary/10 bg-white px-4 py-3">
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-mood-primary/10 bg-white px-4 py-3">
               <div className="flex items-center gap-2 text-sm font-medium text-mood-ink">
                 {darkMode ? <Moon className="h-4 w-4 text-mood-primary" /> : <Sun className="h-4 w-4 text-mood-primary" />}
                 {t('profile.darkMode')}
@@ -380,56 +462,69 @@ export default function Profile() {
               <button
                 onClick={handleThemeToggle}
                 aria-label="Toggle dark mode"
-                className={`relative h-7 w-12 rounded-full transition-colors ${
+                className={`relative h-5 w-9 rounded-full transition-colors ${
                   darkMode ? 'bg-mood-primary' : 'bg-mood-primary/25'
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition-all duration-200 ${
+                  className={`absolute top-0.5 left-0.5 flex h-4 w-4 items-center justify-center rounded-full shadow-sm transition-all duration-200 ${
                     darkMode
-                      ? 'translate-x-5 bg-mood-card text-mood-primary'
+                      ? 'translate-x-4 bg-mood-card text-mood-primary'
                       : 'translate-x-0 bg-mood-primary text-mood-card'
                   }`}
                 >
                   {darkMode
-                    ? <Moon className="h-3 w-3" />
-                    : <Sun className="h-3 w-3" />}
+                    ? <Moon className="h-2.5 w-2.5" />
+                    : <Sun className="h-2.5 w-2.5" />}
                 </span>
               </button>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={handleSave}
-              className={`flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold text-white shadow-lg transition-colors ${
-                saved
-                  ? 'bg-emerald-500 shadow-emerald-500/25'
-                  : 'bg-mood-primary shadow-mood-primary/25 hover:bg-mood-deep'
-              }`}
-            >
-              {saved ? (
-                <>
-                  <CheckCircle2 className="h-4 w-4" />
-                  {t('profile.saved')}
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  {t('profile.save')}
-                </>
-              )}
-            </motion.button>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start">
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={handleSave}
+                className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold text-white shadow-lg transition-colors sm:w-fit sm:min-w-[104px] ${
+                  saved
+                    ? 'bg-emerald-500 shadow-emerald-500/25'
+                    : 'bg-mood-primary shadow-mood-primary/25 hover:bg-mood-deep'
+                }`}
+              >
+                {saved ? (
+                  <>
+                    <CheckCircle2 className="h-3 w-3" />
+                    {t('profile.saved')}
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3 w-3" />
+                    {t('profile.save')}
+                  </>
+                )}
+              </motion.button>
 
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
-            >
-              <LogOut className="h-4 w-4" />
-              {t('nav.logout')}
-            </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 sm:w-fit sm:min-w-[104px]"
+              >
+                <LogOut className="h-3 w-3" />
+                {t('nav.logout')}
+              </button>
+            </div>
           </div>
         </motion.div>
+
+        {paidPlanMeta && (
+          <PaymentModal
+            isOpen={pendingPaidMode !== null}
+            plan={paidPlanMeta.plan}
+            planName={paidPlanMeta.name}
+            priceLabel={`${paidPlanMeta.price}${t('subscription.month')}`}
+            onClose={() => setPendingPaidMode(null)}
+            onSuccess={handlePaymentSuccess}
+          />
+        )}
 
         {/* Notifications */}
         <motion.div

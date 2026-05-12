@@ -12,6 +12,7 @@ import {
   Users,
   Heart,
   Settings,
+  Crown,
 } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
 import type { TKey } from '@/lib/i18n'
@@ -24,9 +25,10 @@ const baseNavItems: Array<{ path: string; labelKey: TKey; icon: typeof LayoutDas
   { path: '/goals',        labelKey: 'nav.goals',        icon: Target },
 ]
 
-const familyItem  = { path: '/family',  labelKey: 'nav.family'  as TKey, icon: Users }
-const coupleItem  = { path: '/couple',  labelKey: 'nav.couple'  as TKey, icon: Heart }
-const profileItem = { path: '/profile', labelKey: 'nav.profile' as TKey, icon: Settings }
+const familyItem       = { path: '/family',       labelKey: 'nav.family'       as TKey, icon: Users }
+const coupleItem       = { path: '/couple',       labelKey: 'nav.couple'       as TKey, icon: Heart }
+const subscriptionItem = { path: '/subscription', labelKey: 'nav.subscription' as TKey, icon: Crown }
+const profileItem      = { path: '/profile',      labelKey: 'nav.profile'      as TKey, icon: Settings }
 
 function readAccountType(): string | null {
   if (typeof window === 'undefined') return null
@@ -65,12 +67,12 @@ export default function BottomNav() {
   const showFamilyOrCouple = accountType === 'gerbul' || isCouple || inFamily
   const partnerItem = isCouple ? coupleItem : familyItem
   const navItems = showFamilyOrCouple
-    ? [...baseNavItems, partnerItem, profileItem]
-    : [...baseNavItems, profileItem]
+    ? [...baseNavItems, partnerItem, subscriptionItem, profileItem]
+    : [...baseNavItems, subscriptionItem, profileItem]
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-mood-primary/10 bg-mood-card/95 px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch justify-between gap-0.5 border-t border-mood-primary/10 bg-mood-card/95 px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 backdrop-blur-md sm:gap-1 sm:px-2 sm:pt-2"
       style={{ boxShadow: '0 -8px 32px -16px rgba(var(--mood-shadow-rgb),0.20)' }}
     >
       {navItems.map((item) => {
@@ -79,7 +81,7 @@ export default function BottomNav() {
           <Link
             key={item.path}
             href={item.path}
-            className="relative flex min-w-[52px] flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-colors"
+            className="relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1.5 transition-colors"
           >
             {active && (
               <motion.span
@@ -89,10 +91,10 @@ export default function BottomNav() {
               />
             )}
             <item.icon
-              className={`relative h-5 w-5 ${active ? 'text-mood-primary' : 'text-mood-muted'}`}
+              className={`relative h-[18px] w-[18px] sm:h-5 sm:w-5 ${active ? 'text-mood-primary' : 'text-mood-muted'}`}
               strokeWidth={active ? 2.4 : 2}
             />
-            <span className={`relative text-[10px] font-semibold ${active ? 'text-mood-primary' : 'text-mood-muted'}`}>
+            <span className={`relative max-w-full truncate text-[9px] font-semibold leading-tight sm:text-[10px] ${active ? 'text-mood-primary' : 'text-mood-muted'}`}>
               {t(item.labelKey)}
             </span>
           </Link>
