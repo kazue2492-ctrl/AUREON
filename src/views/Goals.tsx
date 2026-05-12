@@ -25,6 +25,7 @@ import {
 import { getUser } from '@/lib/clientAuth'
 import type { Goal } from '@/types'
 import { useLanguage } from '@/components/LanguageProvider'
+import DateTimePicker from '@/components/DateTimePicker'
 import { MASCOT_SRC } from '@/views/landing/mascot'
 
 const fadeUp: Variants = {
@@ -347,19 +348,11 @@ export default function Goals() {
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-mood-muted">
                       {t('goals.deadlineLabel')}
                     </label>
-                    <div className="rounded-2xl border-2 border-mood-primary/15 bg-gradient-to-br from-mood-primary/5 to-mood-cream/40 p-3 transition-all focus-within:border-mood-primary focus-within:ring-4 focus-within:ring-mood-primary/15">
-                      <div className="flex items-center gap-3 rounded-xl bg-white/70 px-3 py-2 shadow-sm shadow-mood-primary/5">
-                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-mood-primary/12 text-mood-primary">
-                          <Calendar className="h-4 w-4" />
-                        </div>
-                        <input
-                          type="datetime-local"
-                          value={deadline}
-                          onChange={(e) => setDeadline(e.target.value)}
-                          className="w-full bg-transparent text-sm font-semibold tabular-nums text-mood-ink focus:outline-none"
-                          required
-                        />
-                      </div>
+                    <div className="rounded-2xl border-2 border-mood-primary/15 bg-gradient-to-br from-mood-primary/5 to-mood-cream/40 p-3 transition-all">
+                      <DateTimePicker
+                        value={deadline}
+                        onChange={setDeadline}
+                      />
 
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {([
