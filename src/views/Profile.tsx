@@ -25,11 +25,9 @@ import {
   getNotifications,
   markNotificationRead,
 } from '@/lib/data'
-import { apiFetch, clearAuth, getUser, setUser } from '@/lib/clientAuth'
+import { apiFetch, clearAuth, getUser } from '@/lib/clientAuth'
 import type { UserProfile, Notification } from '@/types'
-import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/components/LanguageProvider'
-import PaymentModal, { type PaymentPlan } from '@/components/PaymentModal'
 
 const profileModes = {
   individual: { icon: Sparkles,        accent: '#6D28D9' },
@@ -40,15 +38,6 @@ const profileModes = {
 
 type ProfileMode = keyof typeof profileModes
 
-const STATUS_TO_ACCOUNT: Record<ProfileMode, 'engiin' | 'khos' | 'oyutan' | 'gerbul'> = {
-  individual: 'engiin',
-  couple:     'khos',
-  student:    'oyutan',
-  family:     'gerbul',
-}
-
-const PAID_MODES: ReadonlySet<ProfileMode> = new Set(['couple', 'family'])
-
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
@@ -56,7 +45,6 @@ const fadeUp: Variants = {
 
 export default function Profile() {
   const router = useRouter()
-  const { setTheme } = useTheme()
   const { lang, setLang, t } = useLanguage()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [name, setName] = useState('')
@@ -75,7 +63,6 @@ export default function Profile() {
     kind: 'family' | 'couple'
     ownerSubscriptionExpiresAt: string | null
   } | null>(null)
-  const [pendingPaidMode, setPendingPaidMode] = useState<ProfileMode | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -153,62 +140,13 @@ export default function Profile() {
     }
   }, [])
 
-  function persistRelationship(mode: ProfileMode) {
-    updateProfile({ relationshipStatus: mode })
-    const accountType = STATUS_TO_ACCOUNT[mode]
-    localStorage.setItem('walletHubAccountType', accountType)
-    setTheme(accountType)
-    window.dispatchEvent(new Event('profileUpdated'))
-  }
-
   function handleSave() {
-    updateProfile({ currency, relationshipStatus, darkMode })
-    const newAccountType = STATUS_TO_ACCOUNT[relationshipStatus]
-    localStorage.setItem('walletHubAccountType', newAccountType)
-    setTheme(newAccountType)
-    window.dispatchEvent(new Event('profileUpdated'))
+    // Lifestyle is now read-only on this page — switching happens via the
+    // Subscription page or the Setup wizard, not here. We only persist the
+    // editable fields (currency + dark mode).
+    updateProfile({ currency, darkMode })
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
-  }
-
-  function handleLifestylePick(mode: ProfileMode) {
-    if (mode === relationshipStatus) return
-
-    // Free modes (individual, student) switch immediately.
-    if (!PAID_MODES.has(mode)) {
-      setRelationshipStatus(mode)
-      persistRelationship(mode)
-      return
-    }
-
-    // Paid modes need an active subscription. If the user already has one,
-    // they can freely switch between paid plans (no re-charge).
-    if (subscriptionActive) {
-      setRelationshipStatus(mode)
-      persistRelationship(mode)
-      return
-    }
-
-    // Otherwise, open the payment modal for the chosen paid plan.
-    setPendingPaidMode(mode)
-  }
-
-  async function handlePaymentSuccess() {
-    if (!pendingPaidMode) return
-    const planName = pendingPaidMode === 'couple' ? 'pro' : 'premium'
-    window.localStorage.setItem('walletHubSubscription', planName)
-    setRelationshipStatus(pendingPaidMode)
-    persistRelationship(pendingPaidMode)
-    setSubscriptionActive(true)
-
-    // Refresh the cached AuthUser so other pages (Sidebar/Subscription) see
-    // the new subscriptionStatus without a full reload.
-    try {
-      const me = await apiFetch<import('@/lib/clientAuth').AuthUser>('/api/auth/me')
-      setUser(me)
-    } catch { /* cache update is best-effort */ }
-
-    setPendingPaidMode(null)
   }
 
   function handleThemeToggle() {
@@ -245,10 +183,21 @@ export default function Profile() {
 
   if (!profile) return null
 
-  const paidPlanMeta = pendingPaidMode === 'couple'
-    ? { plan: 'khos' as PaymentPlan, name: 'Pro · ' + t('mode.couple.label'),   price: '₮9,900'  }
-    : pendingPaidMode === 'family'
-    ? { plan: 'gerbul' as PaymentPlan, name: 'Premium · ' + t('mode.family.label'), price: '₮34,900' }
+  // Effective lifestyle to display: invited members inherit the owner's
+  // plan (couple/family); everyone else sees their own relationshipStatus.
+  const displayMode: ProfileMode = invitedMembership
+    ? (invitedMembership.kind === 'family' ? 'family' : 'couple')
+    : relationshipStatus
+
+  const displayExpiry = invitedMembership
+    ? invitedMembership.ownerSubscriptionExpiresAt
+    : (subscriptionActive ? subscriptionExpiresAt : null)
+
+  const displayExpiryLabel = displayExpiry
+    ? new Date(displayExpiry).toLocaleDateString(
+        lang === 'mn' ? 'mn-MN' : 'en-US',
+        { year: 'numeric', month: 'short', day: 'numeric' }
+      )
     : null
 
   return (
@@ -404,102 +353,38 @@ export default function Profile() {
                 <Sparkles className="h-3.5 w-3.5 text-mood-primary" />
                 {t('profile.lifestyle')}
               </label>
-
-              {invitedMembership ? (
-                // Invited members inherit the owner's plan and can't switch.
-                // Render a single read-only card instead of the 4-option grid.
-                (() => {
-                  const inheritedMode: ProfileMode =
-                    invitedMembership.kind === 'family' ? 'family' : 'couple'
-                  const meta = profileModes[inheritedMode]
-                  const Icon = meta.icon
-                  const expiryLabel = invitedMembership.ownerSubscriptionExpiresAt
-                    ? new Date(invitedMembership.ownerSubscriptionExpiresAt).toLocaleDateString(
-                        lang === 'mn' ? 'mn-MN' : 'en-US',
-                        { year: 'numeric', month: 'short', day: 'numeric' }
-                      )
-                    : null
-                  return (
-                    <div className="relative rounded-2xl border-2 border-mood-primary bg-mood-primary/5 p-4 shadow-md shadow-mood-primary/15">
-                      <span
-                        aria-hidden
-                        className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
-                        style={{ background: meta.accent }}
-                      />
-                      <Icon className="mb-3 h-4 w-4 text-mood-primary" />
-                      <p className="text-sm font-semibold text-mood-ink">
-                        {t(`mode.${inheritedMode}.label` as const)}
-                      </p>
-                      <p className="mt-1 text-xs text-mood-muted">
-                        {t(`mode.${inheritedMode}.subtitle` as const)}
-                      </p>
+              {(() => {
+                const meta = profileModes[displayMode]
+                const Icon = meta.icon
+                return (
+                  <div className="relative rounded-2xl border-2 border-mood-primary bg-mood-primary/5 p-4 shadow-md shadow-mood-primary/15">
+                    <span
+                      aria-hidden
+                      className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
+                      style={{ background: meta.accent }}
+                    />
+                    <Icon className="mb-3 h-4 w-4 text-mood-primary" />
+                    <p className="text-sm font-semibold text-mood-ink">
+                      {t(`mode.${displayMode}.label` as const)}
+                    </p>
+                    <p className="mt-1 text-xs text-mood-muted">
+                      {t(`mode.${displayMode}.subtitle` as const)}
+                    </p>
+                    {invitedMembership && (
                       <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                         <Sparkles className="h-3 w-3" />
                         {t('subscription.invitedBy')}
                       </span>
-                      {expiryLabel && (
-                        <p className="mt-3 text-[11px] text-mood-muted">
-                          {t('subscription.expiresOn')}: <span className="font-semibold text-mood-ink/80">{expiryLabel}</span>
-                        </p>
-                      )}
-                    </div>
-                  )
-                })()
-              ) : (
-              <div className="grid grid-cols-2 gap-2.5">
-                {(Object.keys(profileModes) as ProfileMode[]).map((mode) => {
-                  const meta = profileModes[mode]
-                  const Icon = meta.icon
-                  const selected = relationshipStatus === mode
-                  const locked = PAID_MODES.has(mode) && !subscriptionActive
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => handleLifestylePick(mode)}
-                      className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
-                        selected
-                          ? 'border-mood-primary bg-mood-primary/5 shadow-md shadow-mood-primary/15'
-                          : 'border-mood-primary/10 bg-white hover:border-mood-primary/40'
-                      }`}
-                    >
-                      <span
-                        aria-hidden
-                        className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
-                        style={{ background: meta.accent, opacity: selected ? 1 : 0.4 }}
-                      />
-                      <Icon className={`mb-3 h-4 w-4 ${selected ? 'text-mood-primary' : 'text-mood-muted'}`} />
-                      <p className={`text-sm font-semibold ${selected ? 'text-mood-ink' : 'text-mood-ink/80'}`}>
-                        {t(`mode.${mode}.label` as const)}
-                      </p>
-                      <p className="mt-1 text-xs text-mood-muted">
-                        {t(`mode.${mode}.subtitle` as const)}
-                      </p>
-                      {locked && (
-                        <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-mood-primary/10 px-2 py-0.5 text-[10px] font-semibold text-mood-primary">
-                          <Sparkles className="h-3 w-3" />
-                          {t('profile.upgradeRequired')}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-              )}
-              <p className="mt-2 text-xs text-mood-muted">
-                {invitedMembership ? t('subscription.invitedHint') : t('profile.lifestyleHint')}
-              </p>
-              {!invitedMembership && subscriptionActive && subscriptionExpiresAt && (
-                <p className="mt-1 text-xs text-mood-muted">
-                  {t('subscription.expiresOn')}:{' '}
-                  <span className="font-semibold text-mood-ink/80">
-                    {new Date(subscriptionExpiresAt).toLocaleDateString(
-                      lang === 'mn' ? 'mn-MN' : 'en-US',
-                      { year: 'numeric', month: 'short', day: 'numeric' }
                     )}
-                  </span>
-                </p>
-              )}
+                    {displayExpiryLabel && (
+                      <p className="mt-3 text-[11px] text-mood-muted">
+                        {t('subscription.expiresOn')}: <span className="font-semibold text-mood-ink/80">{displayExpiryLabel}</span>
+                      </p>
+                    )}
+                  </div>
+                )
+              })()}
+              <p className="mt-2 text-xs text-mood-muted">{t('profile.lockedHint')}</p>
             </div>
 
             <div>
@@ -601,17 +486,6 @@ export default function Profile() {
             </div>
           </div>
         </motion.div>
-
-        {paidPlanMeta && (
-          <PaymentModal
-            isOpen={pendingPaidMode !== null}
-            plan={paidPlanMeta.plan}
-            planName={paidPlanMeta.name}
-            priceLabel={`${paidPlanMeta.price}${t('subscription.month')}`}
-            onClose={() => setPendingPaidMode(null)}
-            onSuccess={handlePaymentSuccess}
-          />
-        )}
 
         {/* Notifications */}
         <motion.div
