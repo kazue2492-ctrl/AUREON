@@ -119,8 +119,8 @@ export default function SetupPage() {
     period: lang === 'mn' ? '/сар' : '/mo',
     icon: Crown,
     features: lang === 'mn'
-      ? ['Хязгааргүй гишүүд', 'Нийтлэг төсөв', 'Зорилго хуваалцах', 'Дэлгэрэнгүй тайлан', 'Санхүүгийн зөвлөмж', 'Тэргүүлэх дэмжлэг']
-      : ['Unlimited members', 'Shared budgets', 'Shared goals', 'Detailed reports', 'Personalized tips', 'Priority support'],
+      ? ['Хязгааргүй гишүүд', 'Нийтлэг төсөв', 'Зорилго хуваалцах', 'Дэлгэрэнгүй тайлан', 'Санхүүгийн зөвлөмж', 'Хүүхдийн халаас']
+      : ['Unlimited members', 'Shared budgets', 'Shared goals', 'Detailed reports', 'Personalized tips', 'Kids allowance tracker'],
     badge: T.familyBadge,
     pitch: T.familyPitch,
   }
