@@ -9,8 +9,10 @@ import { Stats }        from './landing/Stats'
 import { Testimonials } from './landing/Testimonials'
 import { CTA }          from './landing/CTA'
 import { Footer }       from './landing/Footer'
+import { useForceLightTheme } from '@/lib/useForceLightTheme'
 
 export default function Landing() {
+  useForceLightTheme()
   return (
     <main className="scroll-smooth bg-aureon-cream font-sans text-aureon-ink antialiased">
       <Navbar />

@@ -17,6 +17,7 @@ import {
 import { apiFetch, setToken, setUser, type AuthUser } from '@/lib/clientAuth'
 import { seedProfileFromAuth } from '@/lib/data'
 import { useLanding } from '@/lib/landingI18n'
+import { useForceLightTheme } from '@/lib/useForceLightTheme'
 import { Wordmark } from '@/views/landing/Navbar'
 import { LanguageToggle } from '@/views/landing/LanguageToggle'
 import { MASCOT_SRC } from '@/views/landing/mascot'
@@ -27,6 +28,7 @@ interface RegisterResponse {
 }
 
 export default function RegisterPage() {
+  useForceLightTheme()
   const router = useRouter()
   const { lang, L } = useLanding()
   const [name, setName] = useState('')
@@ -56,7 +58,7 @@ export default function RegisterPage() {
     failure:      lang === 'mn' ? 'Бүртгүүлэхэд алдаа гарлаа'                    : 'Sign-up failed',
     secure:       lang === 'mn' ? 'Нууц үг bcrypt-ээр шифрлэгдэнэ'              : 'Passwords are hashed with bcrypt',
     pitch:        lang === 'mn'
-      ? 'Анхны царцсан модноосоо бүхэл бүтэн ой ургуулъя.'
+      ? 'Анхны царсан модноосоо бүхэл бүтэн ой ургуулъя.'
       : 'Plant your first acorn — grow a whole forest.',
     perks: lang === 'mn'
       ? ['Үнэгүй эхлэх', 'Картын мэдээлэл шаардахгүй', 'Моко-ийн өдөр тутмын зөвлөгөө']

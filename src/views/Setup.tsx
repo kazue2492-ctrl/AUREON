@@ -9,6 +9,7 @@ import { apiFetch, getToken } from '@/lib/clientAuth'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLanding } from '@/lib/landingI18n'
 import { applyAccountTheme } from '@/lib/accountThemes'
+import { useForceLightTheme } from '@/lib/useForceLightTheme'
 import { Wordmark } from '@/views/landing/Navbar'
 import { LanguageToggle } from '@/views/landing/LanguageToggle'
 import { MASCOT_SRC } from '@/views/landing/mascot'
@@ -42,6 +43,7 @@ const accentByType: Record<AccountType, string> = {
 }
 
 export default function SetupPage() {
+  useForceLightTheme()
   const router = useRouter()
   const { setTheme } = useTheme()
   const { lang } = useLanding()

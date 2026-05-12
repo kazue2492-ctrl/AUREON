@@ -16,6 +16,7 @@ import {
 import { apiFetch, setToken, setUser, type AuthUser } from '@/lib/clientAuth'
 import { seedProfileFromAuth } from '@/lib/data'
 import { useLanding } from '@/lib/landingI18n'
+import { useForceLightTheme } from '@/lib/useForceLightTheme'
 import { Wordmark } from '@/views/landing/Navbar'
 import { LanguageToggle } from '@/views/landing/LanguageToggle'
 
@@ -60,6 +61,7 @@ const GOOGLE_GSI_SRC = 'https://accounts.google.com/gsi/client'
 const LOGIN_MASCOT_SRC = '/21.png'
 
 export default function LoginPage() {
+  useForceLightTheme()
   const router = useRouter()
   const { lang, L } = useLanding()
   const [identifier, setIdentifier] = useState('')
@@ -87,7 +89,7 @@ export default function LoginPage() {
     fillAll:      lang === 'mn' ? 'Бүх талбарыг бөглөнө үү'                : 'Please fill in all fields',
     failure:      lang === 'mn' ? 'Нэвтрэхэд алдаа гарлаа'                 : 'Sign-in failed',
     pitch:        lang === 'mn'
-      ? 'Анхны царцсан модноосоо том ой ургуулъя.'
+      ? 'Анхны царсан модноосоо том ой ургуулъя.'
       : 'From your first acorn to a full forest of savings.',
     secure:       lang === 'mn' ? 'AES-256 шифрлэлтээр хамгаалагдсан'     : 'Protected with AES-256 encryption',
     legal:        lang === 'mn'
@@ -95,12 +97,31 @@ export default function LoginPage() {
       : 'By signing in you agree to the Terms of Service and Privacy Policy.',
     or:           lang === 'mn' ? 'ЭСВЭЛ'                               : 'OR',
     googleMissing: lang === 'mn'
-      ? 'Google нэвтрэлт идэвхгүй байна. NEXT_PUBLIC_GOOGLE_CLIENT_ID-г .env.local-д нэмнэ үү.'
-      : 'Google sign-in is not configured. Add NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env.local.',
+      ? 'Google нэвтрэлт идэвхгүй байна. GOOGLE_CLIENT_ID-г серверийн .env.local-д нэмнэ үү.'
+      : 'Google sign-in is not configured. Add GOOGLE_CLIENT_ID to the server .env.local.',
   }
 
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  const [googleConfig, setGoogleConfig] = useState<{ loading: boolean; clientId: string | null }>({
+    loading: true,
+    clientId: null,
+  })
+  const googleClientId = googleConfig.clientId
   const googleBtnRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/auth/google/config')
+      .then((r) => (r.ok ? r.json() : { clientId: null }))
+      .then((data: { clientId: string | null }) => {
+        if (!cancelled) setGoogleConfig({ loading: false, clientId: data.clientId })
+      })
+      .catch(() => {
+        if (!cancelled) setGoogleConfig({ loading: false, clientId: null })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const completeLogin = useCallback(
     async (token: string, user: AuthUser) => {
@@ -442,7 +463,9 @@ export default function LoginPage() {
               <div className="h-px flex-1 bg-aureon-purple/15" />
             </div>
 
-            {googleClientId ? (
+            {googleConfig.loading ? (
+              <div className="h-10" aria-hidden />
+            ) : googleClientId ? (
               <div ref={googleBtnRef} className="flex justify-center [&>div]:!w-full" />
             ) : (
               <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center text-[11px] leading-relaxed text-amber-700">
