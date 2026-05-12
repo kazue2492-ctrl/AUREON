@@ -8,8 +8,6 @@ import { AccountThemeProvider } from '@/components/AccountThemeProvider'
 import { initializeData } from '@/lib/data'
 import { apiFetch, getToken, setUser, type AuthUser } from '@/lib/clientAuth'
 
-const SIDEBAR_STORAGE_KEY = 'walletHubSidebarExpanded'
-
 export default function DashboardLayout({
   children,
 }: {
@@ -49,11 +47,6 @@ export default function DashboardLayout({
   }, [router])
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(SIDEBAR_STORAGE_KEY)
-      if (saved !== null) setSidebarExpanded(saved === 'true')
-    } catch {}
-
     const onToggle = (e: Event) => {
       const detail = (e as CustomEvent<{ expanded: boolean }>).detail
       if (detail && typeof detail.expanded === 'boolean') {

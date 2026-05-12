@@ -14,8 +14,6 @@ import {
   Settings,
   Users,
   Heart,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from 'lucide-react'
 import { apiFetch, clearAuth, getToken } from '@/lib/clientAuth'
 import { useLanguage } from './LanguageProvider'
@@ -23,7 +21,6 @@ import type { TKey } from '@/lib/i18n'
 import { Wordmark } from '@/views/landing/Navbar'
 
 const SIDEBAR_MASCOT_SRC = '/10.png'
-const STORAGE_KEY = 'walletHubSidebarExpanded'
 
 const baseMenuItems: Array<{ path: string; labelKey: TKey; icon: typeof LayoutDashboard }> = [
   { path: '/dashboard',    labelKey: 'nav.dashboard',    icon: LayoutDashboard },
@@ -65,11 +62,6 @@ export default function Sidebar() {
     }
     window.addEventListener('profileUpdated', sync)
     window.addEventListener('storage', sync)
-
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (saved !== null) setExpanded(saved === 'true')
-    } catch {}
 
     // Fallback: if localStorage was cleared (e.g. logout/relogin on an old
     // build), re-derive accountType from the server's relationship_status
@@ -114,11 +106,10 @@ export default function Sidebar() {
     }
   }, [])
 
-  function toggleSidebar() {
+  function setSidebarExpanded(next: boolean) {
     setExpanded((prev) => {
-      const next = !prev
+      if (prev === next) return prev
       try {
-        window.localStorage.setItem(STORAGE_KEY, String(next))
         window.dispatchEvent(new CustomEvent('sidebarToggled', { detail: { expanded: next } }))
       } catch {}
       return next
@@ -143,6 +134,8 @@ export default function Sidebar() {
   return (
     <aside
       data-expanded={expanded}
+      onMouseEnter={() => setSidebarExpanded(true)}
+      onMouseLeave={() => setSidebarExpanded(false)}
       className={`fixed left-0 top-0 z-50 flex h-screen flex-col overflow-hidden border-r border-mood-primary/15 bg-mood-card/95 shadow-[0_16px_50px_-24px_rgba(var(--mood-shadow-rgb),0.45)] backdrop-blur-md transition-[width] duration-300 ease-out ${
         expanded ? 'w-64' : 'w-20'
       }`}
@@ -159,25 +152,6 @@ export default function Sidebar() {
           }`}
         />
       </div>
-
-      <button
-        type="button"
-        onClick={toggleSidebar}
-        title={expanded ? 'Хаах' : 'Нээх'}
-        aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-        className="mx-3 mb-2 flex items-center justify-center gap-2 rounded-xl border border-mood-primary/15 bg-mood-cream/70 px-3 py-2 text-mood-ink/70 transition-colors hover:border-mood-primary/40 hover:bg-mood-primary/8 hover:text-mood-primary"
-      >
-        {expanded
-          ? <PanelLeftClose className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2.2} />
-          : <PanelLeftOpen className="h-4.5 w-4.5 flex-shrink-0" strokeWidth={2.2} />}
-        <span
-          className={`whitespace-nowrap text-xs font-medium transition-opacity duration-200 ${
-            expanded ? 'opacity-100' : 'pointer-events-none hidden opacity-0'
-          }`}
-        >
-          Хаах
-        </span>
-      </button>
 
       <nav className="flex-1 space-y-1 px-3 py-1">
         {menuItems.map((item) => {
