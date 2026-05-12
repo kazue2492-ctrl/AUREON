@@ -154,7 +154,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
               <img
                 src="/13.png"
                 alt="Report mascot"
-                className="mx-auto xl:mx-0 w-52 sm:w-60 lg:w-72 h-auto object-contain drop-shadow-lg flex-shrink-0"
+                className="mx-auto xl:mx-0 w-64 sm:w-80 lg:w-96 xl:w-[26rem] h-auto object-contain drop-shadow-[0_18px_30px_rgba(var(--mood-shadow-rgb),0.25)] flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
                 <ResponsiveContainer width="100%" height={300}>
@@ -183,7 +183,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
               <img
                 src="/14.png"
                 alt="Empty report illustration"
-                className="w-56 sm:w-64 h-auto object-contain drop-shadow-lg"
+                className="w-72 sm:w-80 lg:w-96 h-auto object-contain drop-shadow-[0_18px_30px_rgba(var(--mood-shadow-rgb),0.25)]"
               />
               <div>
                 <p className="text-lg font-semibold text-[#1A1A1A] dark:text-white">
