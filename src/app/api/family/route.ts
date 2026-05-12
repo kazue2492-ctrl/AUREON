@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
   if (!m) return NextResponse.json({ family: null })
 
   const members = await listFamilyMembers(m.family_id)
+  const ownerExpires = m.owner_subscription_expires_at
   return NextResponse.json({
     family: {
       id: m.family_id,
@@ -30,6 +31,9 @@ export async function GET(req: NextRequest) {
       myFamilyRole: m.family_role ?? null,
       maxMembers: maxMembersForKind(m.family_kind),
       ownerSubscriptionActive: isOwnerSubscriptionActive(m),
+      ownerSubscriptionExpiresAt: ownerExpires instanceof Date
+        ? ownerExpires.toISOString()
+        : ownerExpires,
     },
     members,
   })

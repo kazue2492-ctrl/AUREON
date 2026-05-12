@@ -203,6 +203,9 @@ export const translations = {
   'subscription.featureCouple': { mn: 'Хоёулаа нэгэн данснаас хянах',         en: 'Two-account combined view' },
   'subscription.featureFamily': { mn: 'Хязгааргүй гишүүд',                    en: 'Unlimited members' },
   'subscription.current':       { mn: 'Идэвхтэй',                             en: 'Current' },
+  'subscription.invitedBy':     { mn: 'Урилгаар нэгдсэн',                     en: 'Joined by invitation' },
+  'subscription.invitedHint':   { mn: 'Та урилгаар нэгдсэн тул багцыг зөвхөн эзэмшигч удирдана.', en: 'You joined by invitation; only the owner can manage the plan.' },
+  'subscription.inheritedFrom': { mn: 'Эзэмшигч',                             en: 'Owner' },
 
   // ── Lifestyle modes ──
   'mode.individual.label':    { mn: 'Энгийн',                en: 'Individual' },

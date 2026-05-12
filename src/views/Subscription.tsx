@@ -18,6 +18,13 @@ import PaymentModal, { type PaymentPlan } from '@/components/PaymentModal'
 
 type PlanId = 'free' | 'pro' | 'premium'
 
+interface FamilyMembership {
+  kind: 'family' | 'couple'
+  myRole: 'owner' | 'member'
+  ownerSubscriptionActive: boolean
+  ownerSubscriptionExpiresAt: string | null
+}
+
 interface PlanDef {
   id: PlanId
   paymentPlan: PaymentPlan | null  // null = free, no payment flow
@@ -83,11 +90,30 @@ export default function Subscription() {
   const { t, lang } = useLanguage()
   const [authUser, setAuthUserState] = useState<AuthUser | null>(null)
   const [accountType, setAccountType] = useState<string | null>(null)
+  const [membership, setMembership] = useState<FamilyMembership | null>(null)
   const [pendingPlan, setPendingPlan] = useState<PlanDef | null>(null)
   const [canceled, setCanceled] = useState(false)
 
-  const subscriptionActive = authUser?.subscriptionStatus === 'active'
-  const currentPlanId = planForAccountType(accountType, subscriptionActive)
+  // "Invited" = joined someone else's family/couple AND their owner still has
+  // an active subscription. These users inherit the plan and can't switch.
+  const isInvitedMember =
+    membership !== null &&
+    membership.myRole === 'member' &&
+    membership.ownerSubscriptionActive
+
+  const ownSubscriptionActive = authUser?.subscriptionStatus === 'active'
+  const effectiveActive = ownSubscriptionActive || isInvitedMember
+
+  const inheritedPlanId: PlanId | null = isInvitedMember
+    ? membership!.kind === 'family' ? 'premium' : 'pro'
+    : null
+
+  const currentPlanId: PlanId = inheritedPlanId
+    ?? planForAccountType(accountType, ownSubscriptionActive)
+
+  const expiresAtRaw = isInvitedMember
+    ? membership!.ownerSubscriptionExpiresAt
+    : authUser?.subscriptionExpiresAt ?? null
 
   useEffect(() => {
     const cachedUser = getUser()
@@ -102,6 +128,10 @@ export default function Subscription() {
         setUser(me)
       })
       .catch(() => { /* fall back to cached */ })
+
+    apiFetch<{ family: FamilyMembership | null }>('/api/family')
+      .then((res) => setMembership(res.family))
+      .catch(() => { /* no family is a valid state */ })
   }, [])
 
   function handlePick(plan: PlanDef) {
@@ -111,7 +141,7 @@ export default function Subscription() {
       void handleCancel()
       return
     }
-    if (subscriptionActive) {
+    if (ownSubscriptionActive) {
       // Already subscribed: switching between paid plans doesn't recharge.
       // The user changes their account type from the Profile page; here we
       // just acknowledge with a no-op.
@@ -121,7 +151,7 @@ export default function Subscription() {
   }
 
   async function handleCancel() {
-    if (!subscriptionActive) return
+    if (!ownSubscriptionActive) return
     if (!window.confirm(t('subscription.cancelConfirm'))) return
     try {
       await apiFetch('/api/subscription/activate', { method: 'DELETE' })
@@ -148,8 +178,8 @@ export default function Subscription() {
     setPendingPlan(null)
   }
 
-  const expiresLabel = authUser?.subscriptionExpiresAt
-    ? new Date(authUser.subscriptionExpiresAt).toLocaleDateString(
+  const expiresLabel = expiresAtRaw
+    ? new Date(expiresAtRaw).toLocaleDateString(
         lang === 'mn' ? 'mn-MN' : 'en-US',
         { year: 'numeric', month: 'short', day: 'numeric' }
       )
@@ -195,13 +225,15 @@ export default function Subscription() {
             </div>
             <span
               className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ${
-                subscriptionActive
+                effectiveActive
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-mood-cream text-mood-muted'
               }`}
             >
               <ShieldCheck className="h-3 w-3" />
-              {subscriptionActive
+              {isInvitedMember
+                ? t('subscription.invitedBy')
+                : ownSubscriptionActive
                 ? t('subscription.statusActive')
                 : authUser?.subscriptionStatus === 'expired'
                 ? t('subscription.statusExpired')
@@ -209,14 +241,20 @@ export default function Subscription() {
             </span>
           </div>
 
-          {expiresLabel && subscriptionActive && (
+          {expiresLabel && effectiveActive && (
             <div className="mt-4 flex items-center gap-2 text-xs text-mood-muted">
               <Calendar className="h-3.5 w-3.5" />
               <span>{t('subscription.expiresOn')}: <span className="font-semibold text-mood-ink/80">{expiresLabel}</span></span>
             </div>
           )}
 
-          {subscriptionActive && (
+          {isInvitedMember && (
+            <p className="mt-3 rounded-xl bg-mood-primary/8 px-3 py-2 text-[11px] text-mood-ink/75">
+              {t('subscription.invitedHint')}
+            </p>
+          )}
+
+          {ownSubscriptionActive && (
             <button
               type="button"
               onClick={handleCancel}
@@ -234,7 +272,8 @@ export default function Subscription() {
           )}
         </motion.div>
 
-        {/* Plan list */}
+        {/* Plan list — hidden for invited members (they inherit the owner's plan) */}
+        {!isInvitedMember && (
         <motion.div variants={fadeUp}>
           <h2 className="mb-3 font-display text-base font-bold text-mood-ink">{t('subscription.choosePlan')}</h2>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -294,11 +333,11 @@ export default function Subscription() {
                     <button
                       type="button"
                       onClick={() => handlePick(plan)}
-                      disabled={subscriptionActive && plan.paymentPlan !== null}
+                      disabled={ownSubscriptionActive && plan.paymentPlan !== null}
                       className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${
                         plan.paymentPlan === null
                           ? 'border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100'
-                          : subscriptionActive
+                          : ownSubscriptionActive
                           ? 'cursor-not-allowed border border-mood-primary/10 bg-mood-cream text-mood-muted'
                           : 'bg-mood-primary text-white shadow-lg shadow-mood-primary/25 hover:bg-mood-deep'
                       }`}
@@ -310,7 +349,7 @@ export default function Subscription() {
                       ) : (
                         <>
                           <CreditCard className="h-3 w-3" />
-                          {subscriptionActive ? t('subscription.switchPlan') : t('subscription.upgrade')}
+                          {ownSubscriptionActive ? t('subscription.switchPlan') : t('subscription.upgrade')}
                         </>
                       )}
                     </button>
@@ -324,6 +363,7 @@ export default function Subscription() {
             {t('profile.lifestyleHint')}
           </p>
         </motion.div>
+        )}
       </motion.div>
 
       {pendingPlan?.paymentPlan && (

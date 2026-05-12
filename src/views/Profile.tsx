@@ -70,6 +70,11 @@ export default function Profile() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [subscriptionActive, setSubscriptionActive] = useState(false)
+  const [subscriptionExpiresAt, setSubscriptionExpiresAt] = useState<string | null>(null)
+  const [invitedMembership, setInvitedMembership] = useState<{
+    kind: 'family' | 'couple'
+    ownerSubscriptionExpiresAt: string | null
+  } | null>(null)
   const [pendingPaidMode, setPendingPaidMode] = useState<ProfileMode | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -93,13 +98,39 @@ export default function Profile() {
     setAge(localStorage.getItem('walletHubAge') || '')
     setGender((localStorage.getItem('walletHubGender') as 'male' | 'female' | '') || '')
     setNotifications(getNotifications())
-    setSubscriptionActive(getUser()?.subscriptionStatus === 'active')
+    const cachedUser = getUser()
+    setSubscriptionActive(cachedUser?.subscriptionStatus === 'active')
+    setSubscriptionExpiresAt(cachedUser?.subscriptionExpiresAt ?? null)
 
     // Re-verify subscription from the server so an expired/renewed plan
     // is reflected even when the cached AuthUser is stale.
-    apiFetch<{ subscriptionStatus?: string | null }>('/api/auth/me')
-      .then((me) => setSubscriptionActive(me.subscriptionStatus === 'active'))
+    apiFetch<{ subscriptionStatus?: string | null; subscriptionExpiresAt?: string | null }>('/api/auth/me')
+      .then((me) => {
+        setSubscriptionActive(me.subscriptionStatus === 'active')
+        setSubscriptionExpiresAt(me.subscriptionExpiresAt ?? null)
+      })
       .catch(() => { /* keep cached value */ })
+
+    // Detect invited-member state: joined someone else's family/couple and
+    // the owner's plan is still active. Such users can't switch plans.
+    apiFetch<{ family: {
+      kind: 'family' | 'couple'
+      myRole: 'owner' | 'member'
+      ownerSubscriptionActive: boolean
+      ownerSubscriptionExpiresAt: string | null
+    } | null }>('/api/family')
+      .then((res) => {
+        const fam = res.family
+        if (fam && fam.myRole === 'member' && fam.ownerSubscriptionActive) {
+          setInvitedMembership({
+            kind: fam.kind,
+            ownerSubscriptionExpiresAt: fam.ownerSubscriptionExpiresAt,
+          })
+        } else {
+          setInvitedMembership(null)
+        }
+      })
+      .catch(() => { /* not in a family is fine */ })
   }, [])
 
   useEffect(() => {
@@ -373,6 +404,48 @@ export default function Profile() {
                 <Sparkles className="h-3.5 w-3.5 text-mood-primary" />
                 {t('profile.lifestyle')}
               </label>
+
+              {invitedMembership ? (
+                // Invited members inherit the owner's plan and can't switch.
+                // Render a single read-only card instead of the 4-option grid.
+                (() => {
+                  const inheritedMode: ProfileMode =
+                    invitedMembership.kind === 'family' ? 'family' : 'couple'
+                  const meta = profileModes[inheritedMode]
+                  const Icon = meta.icon
+                  const expiryLabel = invitedMembership.ownerSubscriptionExpiresAt
+                    ? new Date(invitedMembership.ownerSubscriptionExpiresAt).toLocaleDateString(
+                        lang === 'mn' ? 'mn-MN' : 'en-US',
+                        { year: 'numeric', month: 'short', day: 'numeric' }
+                      )
+                    : null
+                  return (
+                    <div className="relative rounded-2xl border-2 border-mood-primary bg-mood-primary/5 p-4 shadow-md shadow-mood-primary/15">
+                      <span
+                        aria-hidden
+                        className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full"
+                        style={{ background: meta.accent }}
+                      />
+                      <Icon className="mb-3 h-4 w-4 text-mood-primary" />
+                      <p className="text-sm font-semibold text-mood-ink">
+                        {t(`mode.${inheritedMode}.label` as const)}
+                      </p>
+                      <p className="mt-1 text-xs text-mood-muted">
+                        {t(`mode.${inheritedMode}.subtitle` as const)}
+                      </p>
+                      <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        <Sparkles className="h-3 w-3" />
+                        {t('subscription.invitedBy')}
+                      </span>
+                      {expiryLabel && (
+                        <p className="mt-3 text-[11px] text-mood-muted">
+                          {t('subscription.expiresOn')}: <span className="font-semibold text-mood-ink/80">{expiryLabel}</span>
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()
+              ) : (
               <div className="grid grid-cols-2 gap-2.5">
                 {(Object.keys(profileModes) as ProfileMode[]).map((mode) => {
                   const meta = profileModes[mode]
@@ -412,7 +485,21 @@ export default function Profile() {
                   )
                 })}
               </div>
-              <p className="mt-2 text-xs text-mood-muted">{t('profile.lifestyleHint')}</p>
+              )}
+              <p className="mt-2 text-xs text-mood-muted">
+                {invitedMembership ? t('subscription.invitedHint') : t('profile.lifestyleHint')}
+              </p>
+              {!invitedMembership && subscriptionActive && subscriptionExpiresAt && (
+                <p className="mt-1 text-xs text-mood-muted">
+                  {t('subscription.expiresOn')}:{' '}
+                  <span className="font-semibold text-mood-ink/80">
+                    {new Date(subscriptionExpiresAt).toLocaleDateString(
+                      lang === 'mn' ? 'mn-MN' : 'en-US',
+                      { year: 'numeric', month: 'short', day: 'numeric' }
+                    )}
+                  </span>
+                </p>
+              )}
             </div>
 
             <div>
