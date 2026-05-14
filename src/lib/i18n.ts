@@ -51,6 +51,7 @@ export const translations = {
   'upload.orClick':         { mn: 'эсвэл сонгохын тулд дарна уу',                en: 'or click to choose a file' },
   'upload.fileHint':        { mn: 'JPG, PNG эсвэл WEBP · 5MB хүртэл',            en: 'JPG, PNG or WEBP · up to 5MB' },
   'upload.choose':          { mn: 'Файл сонгох',                                 en: 'Choose file' },
+  'upload.camera':          { mn: 'Камер нээх',                                  en: 'Open camera' },
   'upload.scanning':        { mn: 'Баримтыг уншиж байна...',                     en: 'Reading the receipt...' },
   'upload.scanFailed':      { mn: 'Уншиж чадсангүй. Гараар оруулна уу.',         en: 'Could not read it. Please enter manually.' },
   'upload.confirmTitle':    { mn: 'Мэдээллийг шалгана уу',                       en: 'Check the details' },

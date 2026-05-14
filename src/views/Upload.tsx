@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload as UploadIcon, ImagePlus, Loader2, ScanLine, ArrowLeft, Check } from 'lucide-react'
+import { Upload as UploadIcon, ImagePlus, Loader2, ScanLine, ArrowLeft, Check, Camera } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageProvider'
 import { addTransaction } from '@/lib/data'
 import { EXPENSE_CATEGORIES } from '@/types'
@@ -36,6 +36,7 @@ export default function Upload() {
   const { t, tc } = useLanguage()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const [stage, setStage] = useState<Stage>('idle')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -196,31 +197,49 @@ export default function Upload() {
                     : 'border-mood-primary/25 bg-mood-card hover:border-mood-primary/50 hover:bg-mood-cream/50'
                 }`}
               >
-                <label className="absolute inset-0 flex cursor-pointer items-center justify-center px-8 pb-24 pt-12 text-center">
+                <div className="absolute inset-0 flex items-center justify-center px-8 pb-24 pt-12 text-center">
                   <div className="flex flex-col items-center justify-center gap-3">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mood-primary/10 text-mood-primary">
-                      <ImagePlus className="h-8 w-8" />
-                    </div>
-                    <div>
-                      <p className="font-display text-base font-bold text-mood-ink">{t('upload.dropHere')}</p>
-                      <p className="mt-1 text-sm text-mood-muted">{t('upload.orClick')}</p>
-                    </div>
-                    <p className="text-xs text-mood-muted/80">{t('upload.fileHint')}</p>
+                    <label className="flex cursor-pointer flex-col items-center gap-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-mood-primary/10 text-mood-primary">
+                        <ImagePlus className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <p className="font-display text-base font-bold text-mood-ink">{t('upload.dropHere')}</p>
+                        <p className="mt-1 text-sm text-mood-muted">{t('upload.orClick')}</p>
+                      </div>
+                      <p className="text-xs text-mood-muted/80">{t('upload.fileHint')}</p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={ACCEPTED.join(',')}
+                        onChange={onPick}
+                        className="hidden"
+                      />
+                      <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-mood-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-mood-primary/25">
+                        <UploadIcon className="h-4 w-4" />
+                        {t('upload.choose')}
+                      </span>
+                    </label>
                     <input
-                      ref={fileInputRef}
+                      ref={cameraInputRef}
                       type="file"
-                      accept={ACCEPTED.join(',')}
+                      accept="image/*"
+                      capture="environment"
                       onChange={onPick}
                       className="hidden"
                     />
-                    <span className="mt-2 inline-flex items-center gap-2 rounded-full bg-mood-primary px-4 py-2 text-sm font-semibold text-white shadow-md shadow-mood-primary/25">
-                      <UploadIcon className="h-4 w-4" />
-                      {t('upload.choose')}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="inline-flex items-center gap-2 rounded-full border border-mood-primary/25 bg-white px-4 py-2 text-sm font-semibold text-mood-primary shadow-sm transition-colors hover:border-mood-primary hover:bg-mood-primary/5"
+                    >
+                      <Camera className="h-4 w-4" />
+                      {t('upload.camera')}
+                    </button>
                   </div>
-                </label>
+                </div>
 
-                <div className="pointer-events-none absolute bottom-4 left-2">
+                <div className="pointer-events-none absolute -bottom-12 left-2 sm:bottom-4">
                   <div className="relative h-[26rem] w-[22rem] overflow-hidden rounded-2xl bg-transparent shadow-none sm:h-[32rem] sm:w-[28rem]">
                     <Image
                       src="/23.png"
