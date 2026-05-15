@@ -93,18 +93,19 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
   }
 
   return (
-    <div className="p-4 lg:p-8 page-transition">
+    <div className="p-3 sm:p-4 lg:p-8 page-transition">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-[#1A1A1A] dark:text-white">
+      <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl sm:text-2xl lg:text-3xl font-bold text-[#1A1A1A] dark:text-white">
             {t('reports.title')}
           </h1>
-          <p className="text-[#8D99AE] mt-1">{t('reports.subtitle')}</p>
+          <p className="text-[#8D99AE] mt-1 truncate text-xs sm:text-base">{t('reports.subtitle')}</p>
         </div>
         <button
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2 px-4 py-2.5 theme-btn-primary rounded-xl text-sm font-medium transition-colors"
+          aria-label={t('reports.download')}
+          className="flex flex-shrink-0 items-center gap-2 px-3 sm:px-4 py-2.5 theme-btn-primary rounded-xl text-sm font-medium transition-colors"
         >
           <Download className="w-4 h-4" />
           <span className="hidden sm:inline">{t('reports.download')}</span>
@@ -112,13 +113,13 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-5 h-5 text-emerald-500" />
             <span className="text-sm text-emerald-600 dark:text-emerald-400">{t('common.income')}</span>
           </div>
-          <p className="text-2xl font-bold font-space text-emerald-700 dark:text-emerald-300">
+          <p className="text-xl sm:text-2xl font-bold font-space tabular-nums text-emerald-700 dark:text-emerald-300">
             {totalIncome.toLocaleString()} ₮
           </p>
         </div>
@@ -127,7 +128,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
             <TrendingDown className="w-5 h-5 text-red-500" />
             <span className="text-sm text-red-600 dark:text-red-400">{t('common.expense')}</span>
           </div>
-          <p className="text-2xl font-bold font-space text-red-700 dark:text-red-300">
+          <p className="text-xl sm:text-2xl font-bold font-space tabular-nums text-red-700 dark:text-red-300">
             {totalExpense.toLocaleString()} ₮
           </p>
         </div>
@@ -136,46 +137,82 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
             <PiggyBank className="w-5 h-5 text-blue-500" />
             <span className="text-sm text-blue-600 dark:text-blue-400">{t('common.savings')}</span>
           </div>
-          <p className={`text-2xl font-bold font-space ${totalSavings >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+          <p className={`text-xl sm:text-2xl font-bold font-space tabular-nums ${totalSavings >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
             {totalSavings.toLocaleString()} ₮
           </p>
         </div>
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Pie Chart */}
-        <div className="bg-white dark:bg-[#1A1D26] p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm fade-in-up">
+        <div className="bg-white dark:bg-[#1A1D26] p-4 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm fade-in-up">
           <h3 className="text-lg font-semibold text-[#1A1A1A] dark:text-white mb-4">
             {t('reports.expenseByCategory')}
           </h3>
           {hasCategoryData ? (
-            <div className="flex flex-col xl:flex-row xl:items-center gap-5">
+            <div className="flex flex-col xl:flex-row xl:items-center gap-4 sm:gap-5">
               <img
                 src="/13.png"
                 alt="Report mascot"
                 className="mx-auto xl:mx-0 w-64 sm:w-80 lg:w-96 xl:w-[26rem] h-auto object-contain drop-shadow-[0_18px_30px_rgba(var(--mood-shadow-rgb),0.25)] flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={260}>
                   <PieChart>
                     <Pie
                       data={categoryData}
-                      cx="56%"
+                      cx="50%"
                       cy="50%"
-                      outerRadius={100}
+                      outerRadius="80%"
                       dataKey="value"
                       animationBegin={200}
                       animationDuration={800}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+                        if (percent < 0.06) return null
+                        const RADIAN = Math.PI / 180
+                        const radius = innerRadius + (outerRadius - innerRadius) * 0.6
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN)
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN)
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            fill="#ffffff"
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fontSize={12}
+                            fontWeight={600}
+                          >
+                            {`${(percent * 100).toFixed(0)}%`}
+                          </text>
+                        )
+                      }}
                     >
                       {categoryData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ₮`} />
+                    <Tooltip formatter={(value: number, name) => [`${value.toLocaleString()} ₮`, String(name)]} />
                   </PieChart>
                 </ResponsiveContainer>
+                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5">
+                  {categoryData.map((cat, i) => {
+                    const total = categoryData.reduce((s, c) => s + c.value, 0)
+                    const pct = total > 0 ? (cat.value / total) * 100 : 0
+                    return (
+                      <div key={cat.name} className="inline-flex items-center gap-1.5 text-xs text-[#8D99AE]">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                        />
+                        <span>{cat.name}</span>
+                        <span className="tabular-nums text-[#A1A8B8]">{pct.toFixed(0)}%</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           ) : (
@@ -198,7 +235,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
         </div>
 
         {/* Bar Chart */}
-        <div className="bg-white dark:bg-[#1A1D26] p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm fade-in-up">
+        <div className="bg-white dark:bg-[#1A1D26] p-4 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm fade-in-up">
           <h3 className="text-lg font-semibold text-[#1A1A1A] dark:text-white mb-4">
             {t('reports.monthlyIncomeExpense')}
           </h3>
@@ -218,7 +255,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
         </div>
 
         {/* Line Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1A1D26] p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm fade-in-up">
+        <div className="lg:col-span-2 bg-white dark:bg-[#1A1D26] p-4 sm:p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm fade-in-up">
           <h3 className="text-lg font-semibold text-[#1A1A1A] dark:text-white mb-4">
             {t('reports.savingsGrowth')}
           </h3>
