@@ -15,6 +15,7 @@ import {
   Crown,
 } from 'lucide-react'
 import { useLanguage } from './LanguageProvider'
+import { getUser } from '@/lib/clientAuth'
 import type { TKey } from '@/lib/i18n'
 
 const baseNavItems: Array<{ path: string; labelKey: TKey; icon: typeof LayoutDashboard }> = [
@@ -40,18 +41,25 @@ function readInFamily(): boolean {
   return window.localStorage.getItem('walletHubInFamily') === 'true'
 }
 
+function readSubscriptionActive(): boolean {
+  return getUser()?.subscriptionStatus === 'active'
+}
+
 export default function BottomNav() {
   const pathname = usePathname()
   const { t } = useLanguage()
   const [accountType, setAccountType] = useState<string | null>(null)
   const [inFamily, setInFamily] = useState(false)
+  const [subscriptionActive, setSubscriptionActive] = useState(false)
 
   useEffect(() => {
     setAccountType(readAccountType())
     setInFamily(readInFamily())
+    setSubscriptionActive(readSubscriptionActive())
     const sync = () => {
       setAccountType(readAccountType())
       setInFamily(readInFamily())
+      setSubscriptionActive(readSubscriptionActive())
     }
     window.addEventListener('profileUpdated', sync)
     window.addEventListener('storage', sync)
@@ -61,11 +69,15 @@ export default function BottomNav() {
     }
   }, [])
 
-  // 'khos' goes to /couple, 'gerbul' to /family. Invited members default
-  // to /family since invitations are family-only today.
-  const isCouple = accountType === 'khos'
-  const showFamilyOrCouple = accountType === 'gerbul' || isCouple || inFamily
-  const partnerItem = isCouple ? coupleItem : familyItem
+  // 'khos' goes to /couple, 'gerbul' to /family. Owners only see the link
+  // while their subscription is active — cancelling hides it until they
+  // renew. Invited members (accountType not 'khos'/'gerbul') inherit
+  // access from the owner so inFamily alone is enough for them.
+  const isCoupleOwner = accountType === 'khos' && subscriptionActive
+  const isFamilyOwner = accountType === 'gerbul' && subscriptionActive
+  const isInvitedMember = accountType !== 'khos' && accountType !== 'gerbul' && inFamily
+  const showFamilyOrCouple = isCoupleOwner || isFamilyOwner || isInvitedMember
+  const partnerItem = isCoupleOwner ? coupleItem : familyItem
   const navItems = showFamilyOrCouple
     ? [...baseNavItems, partnerItem, subscriptionItem, profileItem]
     : [...baseNavItems, subscriptionItem, profileItem]

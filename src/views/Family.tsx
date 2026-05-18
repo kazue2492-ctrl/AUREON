@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import {
   Users,
@@ -156,6 +157,7 @@ function formatCurrency(n: number): string {
 }
 
 export default function FamilyPage() {
+  const pathname = usePathname()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [family, setFamily] = useState<FamilyDto | null>(null)
@@ -197,7 +199,17 @@ export default function FamilyPage() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
 
   const isOwner = family?.myRole === 'owner'
-  const isCouple = family ? family.kind === 'couple' : user?.relationshipStatus === 'couple'
+  // When a family/couple group already exists, that's the source of truth.
+  // Otherwise the URL the user navigated to wins (/couple vs /family),
+  // with relationship_status as a last-ditch fallback for the initial
+  // server-rendered paint where pathname may be empty.
+  const isCouple = family
+    ? family.kind === 'couple'
+    : pathname === '/couple'
+      ? true
+      : pathname === '/family'
+        ? false
+        : user?.relationshipStatus === 'couple'
   const memberLimit = family?.maxMembers ?? (isCouple ? COUPLE_MAX_MEMBERS : FAMILY_MAX_MEMBERS)
   const subscriptionActive = user?.subscriptionStatus === 'active'
 
@@ -651,7 +663,7 @@ export default function FamilyPage() {
 
         {!family && !subscriptionActive && incomingInvites.length === 0 && (
           <motion.div variants={fadeUp}>
-            <PaywallCard onActivate={handleStartSubscription} />
+            <PaywallCard onActivate={handleStartSubscription} isCouple={!!isCouple} />
           </motion.div>
         )}
 
@@ -1338,7 +1350,7 @@ export default function FamilyPage() {
   )
 }
 
-function PaywallCard({ onActivate }: { onActivate: () => void }) {
+function PaywallCard({ onActivate, isCouple }: { onActivate: () => void; isCouple: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-mood-primary/10 bg-gradient-to-br from-mood-primary via-mood-deep to-mood-primary p-8 text-center text-white shadow-xl shadow-mood-primary/25">
       <div
@@ -1348,13 +1360,17 @@ function PaywallCard({ onActivate }: { onActivate: () => void }) {
       />
       <div className="relative">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/20">
-          <Crown className="h-7 w-7" />
+          {isCouple ? <Heart className="h-7 w-7" /> : <Crown className="h-7 w-7" />}
         </div>
         <h2 className="font-display text-xl font-extrabold tracking-tight">
-          Гэр бүл үүсгэхийн тулд Премиум багц шаардлагатай
+          {isCouple
+            ? 'Хос үүсгэхийн тулд Pro багц шаардлагатай'
+            : 'Гэр бүл үүсгэхийн тулд Премиум багц шаардлагатай'}
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-white/85">
-          Owner болж 4 хүртэл гишүүнтэй гэр бүл үүсгэн, бие биенийхээ санхүүгийн тэмдэглэлийг харах боломжтой.
+          {isCouple
+            ? 'Owner болж хамтрагчаа урин, бие биенийхээ санхүүгийн тэмдэглэлийг харах боломжтой.'
+            : 'Owner болж 4 хүртэл гишүүнтэй гэр бүл үүсгэн, бие биенийхээ санхүүгийн тэмдэглэлийг харах боломжтой.'}
         </p>
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -1362,11 +1378,13 @@ function PaywallCard({ onActivate }: { onActivate: () => void }) {
           onClick={onActivate}
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-mood-deep shadow-xl shadow-black/15 transition hover:bg-mood-cream"
         >
-          <Crown className="h-4 w-4" />
+          {isCouple ? <Heart className="h-4 w-4" /> : <Crown className="h-4 w-4" />}
           Subscription идэвхжүүлэх
         </motion.button>
         <p className="mx-auto mt-4 max-w-md text-xs text-white/70">
-          Subscription-тэй найз эсвэл гэр бүлийн гишүүн таныг и-мэйлээр уривал та <span className="font-semibold text-white">үнэгүй</span> нэгдэх боломжтой.
+          {isCouple
+            ? <>Subscription-тэй найз таныг хосоор и-мэйлээр уривал та <span className="font-semibold text-white">үнэгүй</span> нэгдэх боломжтой.</>
+            : <>Subscription-тэй найз эсвэл гэр бүлийн гишүүн таныг и-мэйлээр уривал та <span className="font-semibold text-white">үнэгүй</span> нэгдэх боломжтой.</>}
         </p>
       </div>
     </div>

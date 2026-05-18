@@ -190,6 +190,9 @@ export default function Subscription() {
       setUser(me)
       setAuthUserState(me)
       window.localStorage.removeItem('walletHubSubscription')
+      // Notify Sidebar / BottomNav so the /couple or /family entry
+      // disappears now that the subscription is inactive.
+      try { window.dispatchEvent(new Event('profileUpdated')) } catch {}
       setCanceled(true)
       setTimeout(() => setCanceled(false), 3000)
     } catch (err) {
@@ -201,11 +204,29 @@ export default function Subscription() {
     if (!pendingPlan) return
     const planName = pendingPlan.id === 'pro' ? 'pro' : 'premium'
     window.localStorage.setItem('walletHubSubscription', planName)
+
+    // Sync the cached account type with the purchased tier so the sidebar /
+    // bottom-nav swap (couple ↔ family) and the "current plan" highlight on
+    // this page take effect immediately — the server already updated
+    // relationship_status to match in /api/subscription/checkout.
+    const nextAccountType = pendingPlan.paymentPlan === 'gerbul' ? 'gerbul' : 'khos'
+    window.localStorage.setItem('walletHubAccountType', nextAccountType)
+    setAccountType(nextAccountType)
+
+    // Refresh AuthUser FIRST so getUser().subscriptionStatus is 'active'
+    // before we notify the nav components — otherwise their visibility
+    // gate (subscription-active + accountType) still sees the stale
+    // 'expired' status and keeps the section hidden.
     try {
       const me = await apiFetch<AuthUser>('/api/auth/me')
       setUser(me)
       setAuthUserState(me)
     } catch { /* best-effort cache refresh */ }
+
+    try {
+      window.dispatchEvent(new Event('profileUpdated'))
+    } catch { /* SSR-safe no-op */ }
+
     setPendingPlan(null)
   }
 

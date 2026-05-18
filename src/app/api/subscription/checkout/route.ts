@@ -90,12 +90,19 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date(base)
   expiresAt.setMonth(expiresAt.getMonth() + duration)
 
+  // Keep relationship_status in lockstep with the purchased tier so the
+  // UI (sidebar / nav / Subscription page) reflects the new plan after a
+  // tier switch (e.g. couple → family). Without this, the cached
+  // walletHubAccountType still resolves the user to the old plan.
+  const relationshipStatus = body.plan === 'gerbul' ? 'family' : 'couple'
+
   await db.query(
     `UPDATE users
         SET subscription_status     = 'active',
-            subscription_expires_at = ?
+            subscription_expires_at = ?,
+            relationship_status     = ?
       WHERE id = ?`,
-    [expiresAt, auth.id]
+    [expiresAt, relationshipStatus, auth.id]
   )
 
   return NextResponse.json({
@@ -108,5 +115,6 @@ export async function POST(req: NextRequest) {
     holder,
     subscriptionStatus: 'active',
     subscriptionExpiresAt: expiresAt.toISOString(),
+    relationshipStatus,
   })
 }

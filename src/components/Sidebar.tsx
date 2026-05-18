@@ -16,7 +16,7 @@ import {
   Heart,
   Crown,
 } from 'lucide-react'
-import { apiFetch, clearAuth, getToken } from '@/lib/clientAuth'
+import { apiFetch, clearAuth, getToken, getUser } from '@/lib/clientAuth'
 import { useLanguage } from './LanguageProvider'
 import type { TKey } from '@/lib/i18n'
 import { Wordmark } from '@/views/landing/Navbar'
@@ -47,20 +47,27 @@ function readInFamily(): boolean {
   return window.localStorage.getItem('walletHubInFamily') === 'true'
 }
 
+function readSubscriptionActive(): boolean {
+  return getUser()?.subscriptionStatus === 'active'
+}
+
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useLanguage()
   const [accountType, setAccountType] = useState<string | null>(null)
   const [inFamily, setInFamily] = useState(false)
+  const [subscriptionActive, setSubscriptionActive] = useState(false)
   const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     setAccountType(readAccountType())
     setInFamily(readInFamily())
+    setSubscriptionActive(readSubscriptionActive())
     const sync = () => {
       setAccountType(readAccountType())
       setInFamily(readInFamily())
+      setSubscriptionActive(readSubscriptionActive())
     }
     window.addEventListener('profileUpdated', sync)
     window.addEventListener('storage', sync)
@@ -119,11 +126,16 @@ export default function Sidebar() {
   }
 
   // Each relationship type has its own section: 'gerbul' goes to /family,
-  // 'khos' goes to /couple. Invited members fall through to /family
-  // because invitations are family-only today.
-  const isCouple = accountType === 'khos'
-  const showFamilyOrCouple = accountType === 'gerbul' || isCouple || inFamily
-  const partnerItem = isCouple ? coupleItem : familyItem
+  // 'khos' goes to /couple. Owners (accountType 'khos'/'gerbul') only see
+  // the link while their subscription is active — cancelling hides it
+  // until they renew. Invited members (accountType is something else
+  // like 'engiin'/'oyutan') inherit access from the owner, so the
+  // inFamily flag alone is enough for them.
+  const isCoupleOwner = accountType === 'khos' && subscriptionActive
+  const isFamilyOwner = accountType === 'gerbul' && subscriptionActive
+  const isInvitedMember = accountType !== 'khos' && accountType !== 'gerbul' && inFamily
+  const showFamilyOrCouple = isCoupleOwner || isFamilyOwner || isInvitedMember
+  const partnerItem = isCoupleOwner ? coupleItem : familyItem
   const menuItems = showFamilyOrCouple
     ? [...baseMenuItems, partnerItem, subscriptionItem, profileItem]
     : [...baseMenuItems, subscriptionItem, profileItem]
