@@ -282,7 +282,7 @@ export default function Dashboard() {
                   src={TOTAL_BALANCE_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-0 h-14 w-14 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               {stat.kind === 'income' && (
@@ -290,7 +290,7 @@ export default function Dashboard() {
                   src={INCOME_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-0 h-14 w-14 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               {stat.kind === 'expense' && (
@@ -298,7 +298,7 @@ export default function Dashboard() {
                   src={EXPENSE_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-0 h-14 w-14 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               {stat.kind === 'savings' && (
@@ -306,7 +306,7 @@ export default function Dashboard() {
                   src={SAVINGS_VISUAL_SRC}
                   alt=""
                   aria-hidden
-                  className="pointer-events-none absolute right-0 bottom-[-32px] h-20 w-20 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
+                  className="pointer-events-none absolute right-0 bottom-0 h-14 w-14 object-contain sm:bottom-[-39px] sm:h-32 sm:w-32 lg:h-36 lg:w-36"
                 />
               )}
               <div className="relative flex items-center justify-between">
