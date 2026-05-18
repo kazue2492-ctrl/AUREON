@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import {
   Users,
@@ -158,6 +158,7 @@ function formatCurrency(n: number): string {
 
 export default function FamilyPage() {
   const pathname = usePathname()
+  const router = useRouter()
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [family, setFamily] = useState<FamilyDto | null>(null)
@@ -316,14 +317,14 @@ export default function FamilyPage() {
     }
   }, [])
 
-  async function handleStartSubscription() {
-    try {
-      await apiFetch('/api/subscription/activate', { method: 'POST' })
-      flash('success', 'Subscription идэвхжлээ')
-      loadAll()
-    } catch (err) {
-      flash('error', err instanceof Error ? err.message : 'Алдаа')
-    }
+  function handleStartSubscription() {
+    // Send the user to the proper checkout flow on /subscription so they
+    // pick a tier (Pro / Premium) and pay through PaymentModal. Calling
+    // /api/subscription/activate directly bypasses the tier selection and
+    // leaves relationship_status / accountType out of sync — that's what
+    // caused the "Pro card still shows Cancel/Extend after buying
+    // Premium" bug.
+    router.push('/subscription')
   }
 
   async function handleCreateFamily() {

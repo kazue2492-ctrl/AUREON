@@ -7,13 +7,26 @@ import {
   type AccountKey,
 } from '@/lib/accountThemes'
 import { getProfile } from '@/lib/data'
+import { getUser } from '@/lib/clientAuth'
 
 const STORAGE_KEY = 'walletHubAccountType'
 
 function read(): AccountKey {
   if (typeof window === 'undefined') return DEFAULT_ACCOUNT
   const v = window.localStorage.getItem(STORAGE_KEY)
-  return isAccountKey(v) ? v : DEFAULT_ACCOUNT
+  const cached: AccountKey = isAccountKey(v) ? v : DEFAULT_ACCOUNT
+
+  // 'khos' (Pro) and 'gerbul' (Premium) palettes belong to *paid* tiers.
+  // When the user has no active subscription (cancelled / expired / never
+  // bought), fall back to the neutral 'engiin' mood so the UI visibly
+  // resets to the free state. 'engiin' and 'oyutan' are free tiers and
+  // don't need an active subscription. The cached accountType is
+  // preserved so renewing the same tier restores the right palette.
+  const subscriptionActive = getUser()?.subscriptionStatus === 'active'
+  if (!subscriptionActive && (cached === 'khos' || cached === 'gerbul')) {
+    return 'engiin'
+  }
+  return cached
 }
 
 function readDarkMode(): boolean {
