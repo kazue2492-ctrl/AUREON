@@ -21,8 +21,8 @@ type Duration = 1 | 3 | 12
 // Per-plan, per-duration MNT prices. 3-month tier has a small discount over
 // the monthly rate; the 12-month tier is exactly 12× monthly (no discount).
 const PRICES_MNT: Record<Plan, Record<Duration, number>> = {
-  khos:   { 1: 9900,  3: 28500, 12: 118800 },
-  gerbul: { 1: 34900, 3: 99000, 12: 418800 },
+  khos:   { 1: 4900,  3: 13900, 12: 49000  },
+  gerbul: { 1: 14900, 3: 39900, 12: 149000 },
 }
 
 function isPlan(v: unknown): v is Plan {

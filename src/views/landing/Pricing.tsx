@@ -29,13 +29,13 @@ const PLAN_META: Record<AccountKey, { price: { mn: string; en: string }; icon: L
     ring:   'rgba(14, 165, 233, 0.18)',
   },
   khos: {
-    price: { mn: '₮9,900',   en: '$3.90'   },
+    price: { mn: '₮4,900',   en: '$1.90'   },
     icon:  Heart,
     accent: '#EC4899',
     ring:   'rgba(236, 72, 153, 0.18)',
   },
   gerbul: {
-    price: { mn: '₮34,900',  en: '$13.90'  },
+    price: { mn: '₮14,900',  en: '$5.90'   },
     icon:  Crown,
     accent: '#F59E0B',
     ring:   'rgba(245, 158, 11, 0.20)',
@@ -53,7 +53,7 @@ export function Pricing() {
   const isFree = (id: string) => id === 'engiin' || id === 'oyutan'
 
   return (
-    <section id="pricing" className="relative overflow-hidden bg-aureon-cream py-24 lg:py-28">
+    <section id="pricing" className="relative overflow-hidden bg-aureon-cream py-16 sm:py-24 lg:py-28">
       <div className="pointer-events-none absolute inset-0 bg-aureon-dots opacity-50" />
       <img
         src="/25.png"
@@ -99,7 +99,7 @@ export function Pricing() {
                 key={id}
                 variants={card}
                 whileHover={{ y: -6 }}
-                className={`relative flex flex-col rounded-3xl bg-aureon-ivory p-7 transition-all ${
+                className={`relative flex flex-col rounded-3xl bg-aureon-ivory p-5 transition-all sm:p-7 ${
                   highlight
                     ? 'border-2 ring-4 shadow-2xl'
                     : 'border border-aureon-purple/8 shadow-[0_4px_24px_-12px_rgba(76,29,149,0.10)] hover:shadow-[0_18px_40px_-18px_rgba(76,29,149,0.30)]'
@@ -149,7 +149,7 @@ export function Pricing() {
                 </div>
 
                 <div className="mt-5 flex items-baseline gap-1">
-                  <span className="font-display text-4xl font-extrabold tracking-tight text-aureon-ink">
+                  <span className="font-display text-3xl font-extrabold tracking-tight text-aureon-ink sm:text-4xl">
                     {free ? L.pricing.free : meta.price[lang]}
                   </span>
                   {!free && (

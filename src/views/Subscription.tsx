@@ -55,8 +55,8 @@ const PLANS: PlanDef[] = [
     paymentPlan: 'khos',
     icon: Heart,
     accent: '#EC4899',
-    price: '₮9,900',
-    paidValue: '₮9,900',
+    price: '₮4,900',
+    paidValue: '₮4,900',
     nameKey: 'subscription.planPro',
     descKey: 'subscription.proDesc',
     features: ['subscription.featureBase', 'subscription.featureCouple'],
@@ -66,8 +66,8 @@ const PLANS: PlanDef[] = [
     paymentPlan: 'gerbul',
     icon: Crown,
     accent: '#F59E0B',
-    price: '₮34,900',
-    paidValue: '₮34,900',
+    price: '₮14,900',
+    paidValue: '₮14,900',
     nameKey: 'subscription.planPremium',
     descKey: 'subscription.premiumDesc',
     features: ['subscription.featureBase', 'subscription.featureCouple', 'subscription.featureFamily'],
@@ -90,8 +90,8 @@ function planForAccountType(accountType: string | null, subscriptionActive: bool
 // Per-plan duration prices. MUST mirror PRICES_MNT in
 // app/api/subscription/checkout/route.ts; the server is authoritative.
 const PLAN_DURATION_PRICES: Record<'khos' | 'gerbul', Array<{ months: 1 | 3 | 12; mnt: number }>> = {
-  khos:   [{ months: 1, mnt: 9900  }, { months: 3, mnt: 28500 }, { months: 12, mnt: 118800 }],
-  gerbul: [{ months: 1, mnt: 34900 }, { months: 3, mnt: 99000 }, { months: 12, mnt: 418800 }],
+  khos:   [{ months: 1, mnt: 4900  }, { months: 3, mnt: 13900 }, { months: 12, mnt: 49000  }],
+  gerbul: [{ months: 1, mnt: 14900 }, { months: 3, mnt: 39900 }, { months: 12, mnt: 149000 }],
 }
 
 function formatMnt(n: number): string {

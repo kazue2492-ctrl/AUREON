@@ -103,7 +103,7 @@ export default function SetupPage() {
 
   const couplePlan = {
     name: 'Pro',
-    price: '₮9,900',
+    price: '₮4,900',
     period: lang === 'mn' ? '/сар' : '/mo',
     icon: Zap,
     features: lang === 'mn'
@@ -115,7 +115,7 @@ export default function SetupPage() {
 
   const familyPlan = {
     name: lang === 'mn' ? 'Премиум' : 'Premium',
-    price: '₮34,900',
+    price: '₮14,900',
     period: lang === 'mn' ? '/сар' : '/mo',
     icon: Crown,
     features: lang === 'mn'
