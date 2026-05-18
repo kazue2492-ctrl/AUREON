@@ -176,8 +176,8 @@ export default function RegisterPage() {
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.05 }}
           className="lg:col-span-6"
         >
-          <div className="mx-auto w-full max-w-md rounded-3xl border border-aureon-purple/10 bg-aureon-ivory p-7 shadow-[0_24px_60px_-24px_rgba(76,29,149,0.30)] sm:p-9">
-            <div className="mb-7">
+          <div className="mx-auto w-full max-w-md rounded-2xl border border-aureon-purple/10 bg-aureon-ivory p-5 shadow-[0_24px_60px_-24px_rgba(76,29,149,0.30)] sm:rounded-3xl sm:p-7 lg:p-9">
+            <div className="mb-5 sm:mb-7">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-aureon-purple/10 px-3 py-1 text-xs font-semibold text-aureon-purple">
                 <UserPlus className="h-3.5 w-3.5" />
                 {T.submit}

@@ -238,45 +238,45 @@ export default function Subscription() {
     : null
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="p-3 sm:p-4 lg:p-8">
       <motion.div
         initial="hidden"
         animate="show"
         variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-        className="space-y-6"
+        className="space-y-4 sm:space-y-6"
       >
         <motion.header variants={fadeUp}>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-mood-ink lg:text-3xl">
+          <h1 className="font-display text-xl font-extrabold tracking-tight text-mood-ink sm:text-2xl lg:text-3xl">
             {t('subscription.title')}
           </h1>
-          <p className="mt-0.5 text-sm text-mood-muted">{t('subscription.subtitle')}</p>
+          <p className="mt-0.5 text-xs text-mood-muted sm:text-sm">{t('subscription.subtitle')}</p>
         </motion.header>
 
         {/* Current plan card */}
         <motion.div
           variants={fadeUp}
-          className="relative overflow-hidden rounded-3xl border border-mood-primary/10 bg-gradient-to-br from-mood-primary/8 via-mood-card to-mood-cream p-6 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)]"
+          className="relative overflow-hidden rounded-2xl border border-mood-primary/10 bg-gradient-to-br from-mood-primary/8 via-mood-card to-mood-cream p-4 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)] sm:rounded-3xl sm:p-6"
         >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-mood-primary/12 text-mood-primary">
+          <div className="flex items-start justify-between gap-3 sm:gap-4">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-mood-primary/12 text-mood-primary sm:h-12 sm:w-12">
                 {currentPlanId === 'premium'
-                  ? <Crown className="h-5 w-5" />
+                  ? <Crown className="h-4 w-4 sm:h-5 sm:w-5" />
                   : currentPlanId === 'pro'
-                  ? <Heart className="h-5 w-5" />
-                  : <Sparkles className="h-5 w-5" />}
+                  ? <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                  : <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
               </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-mood-muted">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-mood-muted sm:text-xs">
                   {t('subscription.currentPlan')}
                 </p>
-                <p className="font-display text-lg font-bold text-mood-ink">
+                <p className="truncate font-display text-base font-bold text-mood-ink sm:text-lg">
                   {t(PLANS.find((p) => p.id === currentPlanId)!.nameKey)}
                 </p>
               </div>
             </div>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ${
+              className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold sm:px-3 sm:text-[11px] ${
                 effectiveActive
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-mood-cream text-mood-muted'
@@ -317,15 +317,15 @@ export default function Subscription() {
         {/* Plan list — hidden for invited members (they inherit the owner's plan) */}
         {!isInvitedMember && (
         <motion.div variants={fadeUp}>
-          <h2 className="mb-3 font-display text-base font-bold text-mood-ink">{t('subscription.choosePlan')}</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <h2 className="mb-3 font-display text-base font-bold text-mood-ink sm:text-lg">{t('subscription.choosePlan')}</h2>
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
             {PLANS.map((plan) => {
               const Icon = plan.icon
               const isCurrent = plan.id === currentPlanId
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col gap-3 rounded-3xl border-2 p-5 transition-all ${
+                  className={`relative flex flex-col gap-3 rounded-2xl border-2 p-4 transition-all sm:rounded-3xl sm:p-5 ${
                     isCurrent
                       ? 'border-mood-primary bg-mood-primary/5 shadow-md shadow-mood-primary/15'
                       : 'border-mood-primary/10 bg-mood-card hover:border-mood-primary/40'
@@ -333,10 +333,10 @@ export default function Subscription() {
                 >
                   <div className="flex items-center justify-between">
                     <div
-                      className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl text-white sm:h-10 sm:w-10"
                       style={{ background: plan.accent }}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                     </div>
                     {isCurrent && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
@@ -347,25 +347,25 @@ export default function Subscription() {
                   </div>
 
                   <div>
-                    <p className="font-display text-sm font-bold text-mood-ink">
+                    <p className="font-display text-sm font-bold text-mood-ink sm:text-base">
                       {t(plan.nameKey)}
                     </p>
                     <p className="mt-0.5 text-xs text-mood-muted">{t(plan.descKey)}</p>
                   </div>
 
                   <div className="flex items-baseline gap-1">
-                    <span className="font-display text-xl font-extrabold text-mood-ink">
+                    <span className="font-display text-xl font-extrabold text-mood-ink sm:text-2xl">
                       {plan.id === 'free' ? t('subscription.free') : plan.price}
                     </span>
                     {plan.id !== 'free' && (
-                      <span className="text-[11px] text-mood-muted">{t('subscription.month')}</span>
+                      <span className="text-xs text-mood-muted">{t('subscription.month')}</span>
                     )}
                   </div>
 
                   <ul className="space-y-1.5">
                     {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-[11px] text-mood-ink/80">
-                        <ShieldCheck className="mt-0.5 h-3 w-3 flex-shrink-0 text-mood-primary" />
+                      <li key={f} className="flex items-start gap-2 text-xs text-mood-ink/80">
+                        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-mood-primary" />
                         {t(f)}
                       </li>
                     ))}

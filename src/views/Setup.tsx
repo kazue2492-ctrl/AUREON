@@ -385,7 +385,7 @@ export default function SetupPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: 'easeOut', delay: 0.05 }}
-          className="rounded-3xl border border-mood-primary/10 bg-mood-card p-6 shadow-[0_24px_60px_-24px_rgba(var(--mood-shadow-rgb),0.30)] sm:p-8"
+          className="rounded-2xl border border-mood-primary/10 bg-mood-card p-4 shadow-[0_24px_60px_-24px_rgba(var(--mood-shadow-rgb),0.30)] sm:rounded-3xl sm:p-6 lg:p-8"
         >
           {error && (
             <div className="mb-5 flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -394,8 +394,8 @@ export default function SetupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-mood-muted">
                   {T.age}

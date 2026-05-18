@@ -201,33 +201,33 @@ export default function Profile() {
     : null
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="p-3 sm:p-4 lg:p-8">
       <motion.div
         initial="hidden"
         animate="show"
         variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-        className="space-y-6"
+        className="space-y-4 sm:space-y-6"
       >
         <motion.header variants={fadeUp}>
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-mood-ink lg:text-3xl">
+          <h1 className="font-display text-xl font-extrabold tracking-tight text-mood-ink sm:text-2xl lg:text-3xl">
             {t('profile.title')}
           </h1>
-          <p className="mt-0.5 text-sm text-mood-muted">{t('profile.subtitle')}</p>
+          <p className="mt-0.5 text-xs text-mood-muted sm:text-sm">{t('profile.subtitle')}</p>
         </motion.header>
 
         {/* Avatar card */}
         <motion.div
           variants={fadeUp}
-          className="relative overflow-hidden rounded-3xl border border-mood-primary/10 bg-gradient-to-br from-mood-primary/8 via-mood-card to-mood-cream p-6 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)]"
+          className="relative overflow-hidden rounded-2xl border border-mood-primary/10 bg-gradient-to-br from-mood-primary/8 via-mood-card to-mood-cream p-4 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)] sm:rounded-3xl sm:p-6"
         >
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{ background: 'radial-gradient(circle at 100% 0%, rgba(var(--mood-glow-rgb),0.10), transparent 50%)' }}
           />
-          <div className="relative flex items-center gap-5">
+          <div className="relative flex items-center gap-3 sm:gap-5">
             <div className="relative flex-shrink-0">
-              <div className="h-20 w-20 overflow-hidden rounded-full bg-mood-cream ring-4 ring-mood-primary/15">
+              <div className="h-16 w-16 overflow-hidden rounded-full bg-mood-cream ring-4 ring-mood-primary/15 sm:h-20 sm:w-20">
                 <img
                   src={avatarUrl || profile.avatar}
                   alt={profile.name}
@@ -254,9 +254,9 @@ export default function Profile() {
               />
             </div>
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-bold text-mood-ink">{name || profile.name}</h2>
-              <p className="text-sm text-mood-muted">{email || profile.email}</p>
-              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-mood-primary/10 px-3 py-1 text-xs font-semibold text-mood-primary">
+              <h2 className="truncate font-display text-lg font-bold text-mood-ink sm:text-xl">{name || profile.name}</h2>
+              <p className="truncate text-xs text-mood-muted sm:text-sm">{email || profile.email}</p>
+              <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-mood-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-mood-primary sm:mt-2 sm:px-3 sm:py-1 sm:text-xs">
                 {t(`mode.${relationshipStatus}.label` as const)}
               </div>
             </div>
@@ -266,11 +266,11 @@ export default function Profile() {
         {/* Settings */}
         <motion.div
           variants={fadeUp}
-          className="rounded-3xl border border-mood-primary/10 bg-mood-card p-6 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)]"
+          className="rounded-2xl border border-mood-primary/10 bg-mood-card p-4 shadow-[0_4px_24px_-12px_rgba(var(--mood-shadow-rgb),0.10)] sm:rounded-3xl sm:p-6"
         >
-          <h3 className="font-display text-lg font-bold text-mood-ink">{t('profile.updateInfo')}</h3>
+          <h3 className="font-display text-base font-bold text-mood-ink sm:text-lg">{t('profile.updateInfo')}</h3>
 
-          <div className="mt-5 space-y-4">
+          <div className="mt-4 space-y-4 sm:mt-5">
             <div>
               <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-mood-muted">
                 <User className="h-3.5 w-3.5 text-mood-primary" />
@@ -305,7 +305,7 @@ export default function Profile() {
               <p className="mt-1.5 text-xs text-mood-muted">{t('profile.lockedHint')}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-mood-muted">
                   <User className="h-3.5 w-3.5 text-mood-primary" />

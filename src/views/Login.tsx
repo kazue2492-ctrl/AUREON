@@ -276,7 +276,7 @@ export default function LoginPage() {
         <LanguageToggle />
       </header>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-5 pb-16 pt-4 lg:grid-cols-12 lg:gap-12 lg:px-10 lg:pt-6">
+      <section className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pb-12 pt-2 sm:gap-10 sm:px-5 sm:pb-16 sm:pt-4 lg:grid-cols-12 lg:gap-12 lg:px-10 lg:pt-6">
         <motion.aside
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -329,12 +329,12 @@ export default function LoginPage() {
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.05 }}
           className="lg:col-span-6"
         >
-          <div className="mx-auto w-full max-w-md rounded-3xl border border-aureon-purple/10 bg-aureon-ivory p-7 shadow-[0_24px_60px_-24px_rgba(76,29,149,0.30)] sm:p-9">
-            <div className="mb-7">
-              <h2 className="font-display text-2xl font-bold tracking-tight text-aureon-ink sm:text-3xl">
+          <div className="mx-auto w-full max-w-md rounded-2xl border border-aureon-purple/10 bg-aureon-ivory p-5 shadow-[0_24px_60px_-24px_rgba(76,29,149,0.30)] sm:rounded-3xl sm:p-7 lg:p-9">
+            <div className="mb-5 sm:mb-7">
+              <h2 className="font-display text-xl font-bold tracking-tight text-aureon-ink sm:text-2xl lg:text-3xl">
                 {T.title}
               </h2>
-              <p className="mt-1.5 text-sm text-aureon-muted">{T.subtitle}</p>
+              <p className="mt-1 text-xs text-aureon-muted sm:mt-1.5 sm:text-sm">{T.subtitle}</p>
             </div>
 
             {error && (

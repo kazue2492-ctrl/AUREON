@@ -114,7 +114,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 sm:p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-5 h-5 text-emerald-500" />
             <span className="text-sm text-emerald-600 dark:text-emerald-400">{t('common.income')}</span>
@@ -123,7 +123,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
             {totalIncome.toLocaleString()} ₮
           </p>
         </div>
-        <div className="bg-red-50 dark:bg-red-900/20 p-5 rounded-2xl border border-red-100 dark:border-red-800">
+        <div className="bg-red-50 dark:bg-red-900/20 p-4 sm:p-5 rounded-2xl border border-red-100 dark:border-red-800">
           <div className="flex items-center gap-3 mb-2">
             <TrendingDown className="w-5 h-5 text-red-500" />
             <span className="text-sm text-red-600 dark:text-red-400">{t('common.expense')}</span>
@@ -132,7 +132,7 @@ ${monthlyData.months.map((m, i) => `${m}: Орлого ${monthlyData.income[i].t
             {totalExpense.toLocaleString()} ₮
           </p>
         </div>
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-800">
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 sm:p-5 rounded-2xl border border-blue-100 dark:border-blue-800">
           <div className="flex items-center gap-3 mb-2">
             <PiggyBank className="w-5 h-5 text-blue-500" />
             <span className="text-sm text-blue-600 dark:text-blue-400">{t('common.savings')}</span>
